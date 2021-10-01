@@ -1,0 +1,3 @@
+package dev.mfazio.espnffb.extensions
+
+fun <K> Map<K, Double>.getOrZero(key: K): Int = this.getOrDefault(key, 0.0).toInt()

@@ -1,4 +1,4 @@
-package dev.mfazio.espnffb
+package dev.mfazio.espnffb.types
 
 import dev.mfazio.espnffb.types.espn.ESPNMember
 

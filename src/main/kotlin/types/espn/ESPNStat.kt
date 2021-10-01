@@ -1,7 +1,7 @@
 package dev.mfazio.espnffb.types.espn
 
 data class ESPNStat(
-    val appliedStats: Any,
+    val appliedStats: Map<String, Double>,
     val appliedTotal: Double,
     val appliedTotalCeiling: Double,
     val externalId: String,
@@ -11,6 +11,6 @@ data class ESPNStat(
     val seasonId: Int,
     val statSourceId: Int,
     val statSplitTypeId: Int,
-    val stats: Any,
-    val variance: Any
+    val stats: Map<String, Double>,
+    val variance: Map<String, Double>,
 )
