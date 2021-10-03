@@ -1,6 +1,7 @@
-package dev.mfazio.espnffb.service
+package dev.mfazio.espnffb.handlers
 
 import dev.mfazio.espnffb.ESPNConfig
+import dev.mfazio.espnffb.service.ESPNService
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

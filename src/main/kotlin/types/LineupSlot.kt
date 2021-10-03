@@ -10,9 +10,12 @@ enum class LineupSlot(val espnId: Int, val displayOverride: String? = null) {
     RBWR(3, "RB/WR"),
     WRTE(5),
     BENCH(20, "Bench"),
+    IR(21, "IR"),
     NA(-1, "N/A");
 
     val display = displayOverride ?: name
+
+    fun isStarter() = !listOf(BENCH, IR, NA).contains(this)
 
     companion object {
         fun fromESPNId(espnId: Int) = values().firstOrNull { it.espnId == espnId } ?: NA

@@ -1,4 +1,4 @@
-package dev.mfazio.espnffb.service
+package dev.mfazio.espnffb.handlers
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -10,8 +10,8 @@ import java.io.File
 
 object ESPNLocalServiceHandler {
 
-    private const val dataFolderPath = "C:\\dev\\Files\\espn-ffb\\espn-data"
-    private const val rawDataFolderPath = "$dataFolderPath\\raw"
+    private const val dataFolderPath = "/Users/mfazio23/Development/Files/espn-ffb/espn-data"
+    private const val rawDataFolderPath = "$dataFolderPath/raw"
 
     private val moshi = Moshi.Builder().build()
 
@@ -29,6 +29,9 @@ object ESPNLocalServiceHandler {
             moshi.adapter<List<ESPNScoreboard>>(type).fromJson(jsonData)?.firstOrNull()
         }
     }
+
+    fun getAllTeams(): Map<Int, List<Team>?> =
+        (ESPNConfig.historicalStartYear..ESPNConfig.modernEndYear).associateWith { year -> getTeamsForYear(year) }
     
     fun getTeamsForYear(year: Int): List<Team>? {
         val jsonData = File("$dataFolderPath/team-year-map.json").readText()

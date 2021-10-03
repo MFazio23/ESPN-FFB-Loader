@@ -18,8 +18,8 @@ data class Team(
                 owners = team.owners.mapNotNull { memberId ->
                     members.firstOrNull { "{${it.id}}" == memberId }?.id
                 },
-                location = team.location,
-                nickname = team.nickname,
+                location = team.location.trim(),
+                nickname = team.nickname.trim(),
                 shortName = team.abbrev,
             )
     }

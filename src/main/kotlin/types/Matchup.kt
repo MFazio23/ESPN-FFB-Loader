@@ -4,8 +4,8 @@ data class Matchup(
     val id: Int,
     val year: Int,
     val week: Int,
-    val home: Team,
-    val away: Team,
+    val homeTeamId: Int,
+    val awayTeamId: Int,
     val homeScores: TeamScores,
     val awayScores: TeamScores,
 )

@@ -5,5 +5,5 @@ data class ESPNMember(
     val firstName: String,
     val id: String,
     val lastName: String,
-    val notificationSettings: List<ESPNNotificationSetting>
+    val notificationSettings: List<ESPNNotificationSetting>? = null,
 )

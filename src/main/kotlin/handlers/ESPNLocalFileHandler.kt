@@ -1,18 +1,22 @@
-package dev.mfazio.espnffb.datasaver
+package dev.mfazio.espnffb.handlers
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import dev.mfazio.espnffb.ESPNConfig
-import dev.mfazio.espnffb.service.ESPNLocalServiceHandler
-import dev.mfazio.espnffb.service.ESPNServiceHandler
+import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
+import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
+import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
+import dev.mfazio.espnffb.types.Matchup
+import dev.mfazio.espnffb.types.RecordBook
+import dev.mfazio.espnffb.types.RecordBookEntry
 import dev.mfazio.espnffb.types.Team
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import kotlinx.coroutines.delay
 import java.io.File
 
-object ESPNDataSaver {
-    private const val baseFolderPath = "c:/dev/Files/espn-ffb/"
+object ESPNLocalFileHandler {
+    private const val baseFolderPath = "/Users/mfazio23/Development/Files/espn-ffb/"
     private const val dataFolderPath = "${baseFolderPath}espn-data"
     private const val rawDataFolderPath = "$dataFolderPath/raw"
 
@@ -30,19 +34,10 @@ object ESPNDataSaver {
 
         (ESPNConfig.historicalStartYear..ESPNConfig.historicalEndYear).forEach { year ->
             (ESPNConfig.startWeek..ESPNConfig.endWeek).forEach { week ->
-                val jsonResult = loadJsonResultForWeek(year, week)
+                val jsonResult = loadJsonResultForWeek(year, week, year >= 2019)
 
                 saveJsonResultForWeek(year, week, jsonResult)
 
-                delay(500)
-            }
-        }
-
-        (ESPNConfig.modernStartYear..ESPNConfig.modernEndYear).forEach { year ->
-            (ESPNConfig.startWeek..ESPNConfig.endWeek).forEach { week ->
-                val jsonResult = loadJsonResultForWeek(year, week, true)
-
-                saveJsonResultForWeek(year, week, jsonResult)
                 delay(500)
             }
         }
@@ -97,23 +92,42 @@ object ESPNDataSaver {
         return teams
     }
 
-    fun getMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) = scoreboards
-        .flatMap { it.members }
-        .distinctBy { it.id }
-        .map { member ->
-            member.copy(id = member.id.replace("{", "").replace("}", ""))
+    fun saveTeamList(scoreboards: List<ESPNScoreboard>): List<Team> {
+        val teams = getTeamListFromScoreboards(scoreboards)
+
+        val teamListType = Types.newParameterizedType(List::class.java, Team::class.java)
+        val adapter = Moshi.Builder().build().adapter<List<Team>>(teamListType)
+
+        File("$dataFolderPath/team-list.json").writeText(
+            adapter.toJson(teams)
+        )
+
+        return teams
+    }
+
+    fun saveMatchups(matchups: List<Matchup?>) {
+        val type = Types.newParameterizedType(List::class.java, Matchup::class.java)
+        moshi.adapter<List<Matchup>>(type).toJson(matchups.filterNotNull()).let { matchupJson ->
+            File("$dataFolderPath/matchups.json").writeText(
+                matchupJson
+            )
         }
+    }
 
-    fun getTeamYearMapFromScoreboards(scoreboards: List<ESPNScoreboard>): Map<Int, List<Team>> {
-        val members = getMemberListFromScoreboards(scoreboards)
+    fun loadMatchups(): List<Matchup> {
+        val type = Types.newParameterizedType(List::class.java, Matchup::class.java)
 
-        return scoreboards
-            .groupBy { it.seasonId }
-            .mapValues { (_, scoreboards) ->
-                scoreboards.flatMap {
-                    it.teams
-                        .map { espnTeam -> Team.fromESPNTeam(espnTeam, members) }
-                }.distinctBy { it.id }
-            }
+        val matchupJson = File("$dataFolderPath/matchups.json").readText()
+
+        return moshi
+            .adapter<List<Matchup>>(type)
+            .fromJson(matchupJson)
+            ?: emptyList()
+    }
+
+    fun saveRecordBook(recordBook: RecordBook) {
+        File("$dataFolderPath/record-book.json").writeText(
+            moshi.adapter(RecordBook::class.java).toJson(recordBook)
+        )
     }
 }

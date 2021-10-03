@@ -9,6 +9,7 @@ enum class Position(val id: Int) {
     DEF(16),
     NA(-1);
 
+
     companion object {
         fun fromESPNId(id: Int) = values().firstOrNull { it.id == id } ?: NA
     }
