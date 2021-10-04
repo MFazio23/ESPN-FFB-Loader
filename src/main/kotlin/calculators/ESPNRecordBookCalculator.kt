@@ -1,9 +1,6 @@
 package dev.mfazio.espnffb.calculators
 
-import dev.mfazio.espnffb.types.Matchup
-import dev.mfazio.espnffb.types.RecordBook
-import dev.mfazio.espnffb.types.RecordBookEntry
-import dev.mfazio.espnffb.types.Streak
+import dev.mfazio.espnffb.types.*
 import kotlin.math.abs
 
 object ESPNRecordBookCalculator {
@@ -110,7 +107,10 @@ object ESPNRecordBookCalculator {
         matchups.sortedByDescending { it.homeScores.standardScore + it.awayScores.standardScore }.map { matchup ->
             RecordBookEntry(
                 matchup.homeScores.standardScore + matchup.awayScores.standardScore,
-                mapOf(matchup.homeTeamId to matchup.homeScores.standardScore, matchup.awayTeamId to matchup.awayScores.standardScore),
+                mapOf(
+                    matchup.homeTeamId to matchup.homeScores.standardScore,
+                    matchup.awayTeamId to matchup.awayScores.standardScore
+                ),
                 matchup.year,
                 matchup.week,
             )
@@ -120,7 +120,10 @@ object ESPNRecordBookCalculator {
         matchups.sortedBy { it.homeScores.standardScore + it.awayScores.standardScore }.map { matchup ->
             RecordBookEntry(
                 matchup.homeScores.standardScore + matchup.awayScores.standardScore,
-                mapOf(matchup.homeTeamId to matchup.homeScores.standardScore, matchup.awayTeamId to matchup.awayScores.standardScore),
+                mapOf(
+                    matchup.homeTeamId to matchup.homeScores.standardScore,
+                    matchup.awayTeamId to matchup.awayScores.standardScore
+                ),
                 matchup.year,
                 matchup.week,
             )
@@ -130,7 +133,10 @@ object ESPNRecordBookCalculator {
         matchups.sortedBy { abs(it.homeScores.standardScore - it.awayScores.standardScore) }.map { matchup ->
             RecordBookEntry(
                 abs(matchup.homeScores.standardScore - matchup.awayScores.standardScore),
-                mapOf(matchup.homeTeamId to matchup.homeScores.standardScore, matchup.awayTeamId to matchup.awayScores.standardScore),
+                mapOf(
+                    matchup.homeTeamId to matchup.homeScores.standardScore,
+                    matchup.awayTeamId to matchup.awayScores.standardScore
+                ),
                 matchup.year,
                 matchup.week,
             )
@@ -140,7 +146,10 @@ object ESPNRecordBookCalculator {
         matchups.sortedByDescending { abs(it.homeScores.standardScore - it.awayScores.standardScore) }.map { matchup ->
             RecordBookEntry(
                 abs(matchup.homeScores.standardScore - matchup.awayScores.standardScore),
-                mapOf(matchup.homeTeamId to matchup.homeScores.standardScore, matchup.awayTeamId to matchup.awayScores.standardScore),
+                mapOf(
+                    matchup.homeTeamId to matchup.homeScores.standardScore,
+                    matchup.awayTeamId to matchup.awayScores.standardScore
+                ),
                 matchup.year,
                 matchup.week,
             )
@@ -195,20 +204,25 @@ object ESPNRecordBookCalculator {
             .filter { it.week <= 13 || includePlayoffs }
             .flatMap { matchup ->
                 val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore
-                listOf(matchup.homeTeamId to homeTeamWon, matchup.awayTeamId to !homeTeamWon)
+                listOf(
+                    matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
+                    matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
+                )
             }
             .groupBy { (teamId, _) -> teamId }
             .mapValues { (_, results) ->
                 results
                     .map { (_, won) -> won }
                     .fold(Streak()) { streak, result ->
-                        if (result) {
+                        if (result.teamWon) {
                             Streak(
                                 maxOf(streak.max, streak.current + 1),
-                                streak.current + 1
+                                if (streak.current >= streak.max) result.startYear else streak.maxYear,
+                                streak.current + 1,
+                                if (streak.currentYear == 0) result.startYear else streak.currentYear
                             )
                         } else {
-                            Streak(streak.max, 0)
+                            Streak(streak.max, streak.maxYear)
                         }
                     }
             }
@@ -216,6 +230,7 @@ object ESPNRecordBookCalculator {
                 RecordBookEntry(
                     streak.max.toDouble(),
                     mapOf(teamId to streak.max.toDouble()),
+                    season = streak.maxYear
                 )
             }
             .sortedByDescending { it.value }
@@ -226,20 +241,25 @@ object ESPNRecordBookCalculator {
             .filter { it.week <= 13 || includePlayoffs }
             .flatMap { matchup ->
                 val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore
-                listOf(matchup.homeTeamId to !homeTeamWon, matchup.awayTeamId to homeTeamWon)
+                listOf(
+                    matchup.homeTeamId to StreakItem(matchup.year, !homeTeamWon),
+                    matchup.awayTeamId to StreakItem(matchup.year, homeTeamWon)
+                )
             }
             .groupBy { (teamId, _) -> teamId }
             .mapValues { (_, results) ->
                 results
                     .map { (_, won) -> won }
                     .fold(Streak()) { streak, result ->
-                        if (result) {
+                        if (!result.teamWon) {
                             Streak(
                                 maxOf(streak.max, streak.current + 1),
-                                streak.current + 1
+                                if (streak.current >= streak.max) result.startYear else streak.maxYear,
+                                streak.current + 1,
+                                if (streak.currentYear == 0) result.startYear else streak.currentYear
                             )
                         } else {
-                            Streak(streak.max, 0)
+                            Streak(streak.max, streak.maxYear)
                         }
                     }
             }
@@ -247,6 +267,7 @@ object ESPNRecordBookCalculator {
                 RecordBookEntry(
                     streak.max.toDouble(),
                     mapOf(teamId to streak.max.toDouble()),
+                    season = streak.maxYear
                 )
             }
             .sortedByDescending { it.value }
@@ -256,7 +277,10 @@ object ESPNRecordBookCalculator {
         matchups.sortedBy { maxOf(it.homeScores.standardScore, it.awayScores.standardScore) }.map { matchup ->
             RecordBookEntry(
                 maxOf(matchup.homeScores.standardScore, matchup.awayScores.standardScore),
-                mapOf(matchup.homeTeamId to matchup.homeScores.standardScore, matchup.awayTeamId to matchup.awayScores.standardScore),
+                mapOf(
+                    matchup.homeTeamId to matchup.homeScores.standardScore,
+                    matchup.awayTeamId to matchup.awayScores.standardScore
+                ),
                 matchup.year,
                 matchup.week,
             )
@@ -266,7 +290,10 @@ object ESPNRecordBookCalculator {
         matchups.sortedByDescending { minOf(it.homeScores.standardScore, it.awayScores.standardScore) }.map { matchup ->
             RecordBookEntry(
                 minOf(matchup.homeScores.standardScore, matchup.awayScores.standardScore),
-                mapOf(matchup.homeTeamId to matchup.homeScores.standardScore, matchup.awayTeamId to matchup.awayScores.standardScore),
+                mapOf(
+                    matchup.homeTeamId to matchup.homeScores.standardScore,
+                    matchup.awayTeamId to matchup.awayScores.standardScore
+                ),
                 matchup.year,
                 matchup.week,
             )

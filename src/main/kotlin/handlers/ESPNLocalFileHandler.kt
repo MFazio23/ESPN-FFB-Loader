@@ -16,9 +16,8 @@ import kotlinx.coroutines.delay
 import java.io.File
 
 object ESPNLocalFileHandler {
-    private const val baseFolderPath = "/Users/mfazio23/Development/Files/espn-ffb/"
-    private const val dataFolderPath = "${baseFolderPath}espn-data"
-    private const val rawDataFolderPath = "$dataFolderPath/raw"
+    private val dataFolderPath = "${ESPNConfig.baseFileDirectory}espn-data"
+    private val rawDataFolderPath = "$dataFolderPath/raw"
 
     private val moshi = Moshi.Builder().build()
 

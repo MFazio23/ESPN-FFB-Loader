@@ -10,8 +10,8 @@ import java.io.File
 
 object ESPNLocalServiceHandler {
 
-    private const val dataFolderPath = "/Users/mfazio23/Development/Files/espn-ffb/espn-data"
-    private const val rawDataFolderPath = "$dataFolderPath/raw"
+    private val dataFolderPath = "${ESPNConfig.baseFileDirectory}/espn-data"
+    private val rawDataFolderPath = "$dataFolderPath/raw"
 
     private val moshi = Moshi.Builder().build()
 
