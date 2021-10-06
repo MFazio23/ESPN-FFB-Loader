@@ -32,32 +32,46 @@ object ESPNRecordBookCalculator {
         )
 
     private fun getMostPointsInGame(matchups: List<Matchup>) =
-        matchups.sortedByDescending { maxOf(it.homeScores.standardScore, it.awayScores.standardScore) }.map { matchup ->
-            RecordBookEntry(
-                maxOf(matchup.homeScores.standardScore, matchup.awayScores.standardScore),
-                if (matchup.homeScores.standardScore > matchup.awayScores.standardScore) {
-                    mapOf(matchup.homeTeamId to matchup.homeScores.standardScore)
-                } else {
-                    mapOf(matchup.awayTeamId to matchup.awayScores.standardScore)
-                },
-                matchup.year,
-                matchup.week,
-            )
-        }.take(itemsToInclude)
+        matchups
+            .flatMap { matchup ->
+                listOf(
+                    RecordBookEntry(
+                        matchup.homeScores.standardScore,
+                        mapOf(matchup.homeTeamId to matchup.homeScores.standardScore),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                    RecordBookEntry(
+                        matchup.awayScores.standardScore,
+                        mapOf(matchup.awayTeamId to matchup.awayScores.standardScore),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                )
+            }
+            .sortedByDescending { entry -> entry.value }
+            .take(itemsToInclude)
 
     private fun getFewestPointsInGame(matchups: List<Matchup>) =
-        matchups.sortedBy { minOf(it.homeScores.standardScore, it.awayScores.standardScore) }.map { matchup ->
-            RecordBookEntry(
-                minOf(matchup.homeScores.standardScore, matchup.awayScores.standardScore),
-                if (matchup.homeScores.standardScore < matchup.awayScores.standardScore) {
-                    mapOf(matchup.homeTeamId to matchup.homeScores.standardScore)
-                } else {
-                    mapOf(matchup.awayTeamId to matchup.awayScores.standardScore)
-                },
-                matchup.year,
-                matchup.week,
-            )
-        }.take(itemsToInclude)
+        matchups
+            .flatMap { matchup ->
+                listOf(
+                    RecordBookEntry(
+                        matchup.homeScores.standardScore,
+                        mapOf(matchup.homeTeamId to matchup.homeScores.standardScore),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                    RecordBookEntry(
+                        matchup.awayScores.standardScore,
+                        mapOf(matchup.awayTeamId to matchup.awayScores.standardScore),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                )
+            }
+            .sortedBy { entry -> entry.value }
+            .take(itemsToInclude)
 
     private fun getMostPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
         matchups
@@ -242,8 +256,8 @@ object ESPNRecordBookCalculator {
             .flatMap { matchup ->
                 val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore
                 listOf(
-                    matchup.homeTeamId to StreakItem(matchup.year, !homeTeamWon),
-                    matchup.awayTeamId to StreakItem(matchup.year, homeTeamWon)
+                    matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
+                    matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
                 )
             }
             .groupBy { (teamId, _) -> teamId }
