@@ -8,4 +8,5 @@ data class Matchup(
     val awayTeamId: Int,
     val homeScores: TeamScores,
     val awayScores: TeamScores,
+    val isHomeOriginalWinner: Boolean = true,
 )

@@ -14,6 +14,8 @@ suspend fun main() {
 
     val matchups = getMatchupsFromScoreboards(scoreboards, teamYearMap).filterNotNull()
 
+    ESPNLocalFileHandler.saveMatchups(matchups)
+
     val recordBook = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups)
 
     ESPNLocalFileHandler.saveRecordBook(recordBook)

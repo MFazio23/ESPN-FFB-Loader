@@ -17,6 +17,9 @@ fun getMatchupsFromScoreboards(scoreboards: List<ESPNScoreboard>, allTeams: Map<
             val homePlayers = homeRoster.map { Player.fromESPNEntry(it) }
             val awayPlayers = awayRoster.map { Player.fromESPNEntry(it) }
 
+            val homeScore = schedule.home.pointsByScoringPeriod[schedule.matchupPeriodId.toString()] ?: 0.0
+            val awayScore = schedule.away.pointsByScoringPeriod[schedule.matchupPeriodId.toString()] ?: 0.0
+
             Matchup(
                 id = schedule.id,
                 year = scoreboard.seasonId,
@@ -24,13 +27,14 @@ fun getMatchupsFromScoreboards(scoreboards: List<ESPNScoreboard>, allTeams: Map<
                 homeTeamId = homeTeam.id,
                 awayTeamId = awayTeam.id,
                 homeScores = TeamScores(
-                    standardScore = schedule.home.pointsByScoringPeriod[schedule.matchupPeriodId.toString()] ?: 0.0,
+                    standardScore = homeScore,
                     bestBallScore = getBestBallLineup(homePlayers)?.sumOf { it.points },
                 ),
                 awayScores = TeamScores(
-                    standardScore = schedule.away.pointsByScoringPeriod[schedule.matchupPeriodId.toString()] ?: 0.0,
+                    standardScore = awayScore,
                     bestBallScore = getBestBallLineup(awayPlayers)?.sumOf { it.points },
                 ),
+                isHomeOriginalWinner = schedule.winner == "HOME"
             )
         }
     }
