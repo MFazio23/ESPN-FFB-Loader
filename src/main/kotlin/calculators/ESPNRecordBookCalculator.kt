@@ -217,7 +217,8 @@ object ESPNRecordBookCalculator {
         matchups
             .filter { it.week <= 13 || includePlayoffs }
             .flatMap { matchup ->
-                val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore
+                val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
+                    (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
                 listOf(
                     matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
                     matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
@@ -254,7 +255,8 @@ object ESPNRecordBookCalculator {
         matchups
             .filter { it.week <= 13 || includePlayoffs }
             .flatMap { matchup ->
-                val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore
+                val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
+                    (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
                 listOf(
                     matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
                     matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
