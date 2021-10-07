@@ -34,7 +34,8 @@ fun getMatchupsFromScoreboards(scoreboards: List<ESPNScoreboard>, allTeams: Map<
                     standardScore = awayScore,
                     bestBallScore = getBestBallLineup(awayPlayers)?.sumOf { it.points },
                 ),
-                isHomeOriginalWinner = schedule.winner == "HOME"
+                isHomeOriginalWinner = schedule.winner == "HOME",
+                playoffTierType = PlayoffTierType.fromESPNString(schedule.playoffTierType)
             )
         }
     }
@@ -56,9 +57,18 @@ fun getTeamListFromScoreboards(scoreboards: List<ESPNScoreboard>): List<Team> {
 
     return scoreboards.flatMap {
         it.teams
-            .map { espnTeam -> Team.fromESPNTeam(espnTeam, members) }
-    }.distinctBy { it.id }
+            .map { espnTeam -> Team.fromESPNTeam(espnTeam, members, it.seasonId) }
+    }.distinctBy { "${it.id}-${it.year}" }.sortedBy { it.id }
 }
+
+fun getChampionshipGamesFromScoreboards(scoreboards: List<ESPNScoreboard>): List<ESPNScoreboard> =
+    scoreboards
+        .filter { it.scoringPeriodId == 16 }
+        .map { scoreboard ->
+            scoreboard.copy(
+                schedule = scoreboard.schedule.filter { it.matchupPeriodId == 16 && it.playoffTierType == winnersBracketTierType }
+            )
+        }
 
 fun getBestBallLineup(players: List<Player>): List<Player>? {
     if (players.size < 10 ||
@@ -114,6 +124,7 @@ fun getFlexPositions(players: List<Player>): List<Player> {
     })
 }
 
+const val winnersBracketTierType = "WINNERS_BRACKET"
 /*
 fun getRecordBookFromMatchups(matchups: List<Matchup>): RecordBook {
 

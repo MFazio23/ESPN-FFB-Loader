@@ -10,15 +10,18 @@ import kotlinx.coroutines.delay
 suspend fun main() {
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
 
-    val teamYearMap = getTeamYearMapFromScoreboards(scoreboards)
+    /*val teamYearMap = getTeamYearMapFromScoreboards(scoreboards)
 
-    val matchups = getMatchupsFromScoreboards(scoreboards, teamYearMap).filterNotNull()
+    ESPNLocalFileHandler.saveTeamYearMap(scoreboards)*/
+    ESPNLocalFileHandler.saveTeamList(scoreboards)
+
+    /*val matchups = getMatchupsFromScoreboards(scoreboards, teamYearMap).filterNotNull()
 
     ESPNLocalFileHandler.saveMatchups(matchups)
 
     val recordBook = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups)
 
-    ESPNLocalFileHandler.saveRecordBook(recordBook)
+    ESPNLocalFileHandler.saveRecordBook(recordBook)*/
 
 
 }

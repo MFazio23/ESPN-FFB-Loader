@@ -1,6 +1,7 @@
 package dev.mfazio.espnffb.types
 
 import dev.mfazio.espnffb.types.espn.ESPNMember
+import dev.mfazio.espnffb.types.espn.ESPNTeam
 
 data class Team(
     val id: Int,
@@ -8,11 +9,12 @@ data class Team(
     val location: String,
     val nickname: String,
     val shortName: String,
+    val year: Int,
 ) {
     val fullName = "$location $nickname"
 
     companion object {
-        fun fromESPNTeam(team: dev.mfazio.espnffb.types.espn.ESPNTeam, members: List<ESPNMember>): Team =
+        fun fromESPNTeam(team: ESPNTeam, members: List<ESPNMember>, year: Int = -1): Team =
             Team(
                 id = team.id,
                 owners = team.owners.mapNotNull { memberId ->
@@ -21,6 +23,7 @@ data class Team(
                 location = team.location.trim(),
                 nickname = team.nickname.trim(),
                 shortName = team.abbrev,
+                year = year,
             )
     }
 }

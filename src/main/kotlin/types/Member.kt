@@ -8,6 +8,8 @@ data class Member(
     val firstName: String,
     val lastName: String,
 ) {
+    val fullName = "$firstName $lastName"
+
     companion object {
         fun fromESPNMember(espnMember: ESPNMember) =
             Member(

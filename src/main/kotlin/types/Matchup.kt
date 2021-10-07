@@ -8,5 +8,22 @@ data class Matchup(
     val awayTeamId: Int,
     val homeScores: TeamScores,
     val awayScores: TeamScores,
+    val playoffTierType: PlayoffTierType? = null,
     val isHomeOriginalWinner: Boolean = true,
-)
+) {
+    fun didTeamWin(teamIds: List<Int>) =
+        (teamIds.contains(homeTeamId) && (homeScores.standardScore > awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && isHomeOriginalWinner)) ||
+            (teamIds.contains(awayTeamId) && (homeScores.standardScore < awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && !isHomeOriginalWinner))
+
+    fun getTeamScores(teamIds: List<Int>) = when {
+        teamIds.contains(homeTeamId) -> homeScores
+        teamIds.contains(awayTeamId) -> awayScores
+        else -> null
+    }
+
+    fun getOtherTeamScores(teamIds: List<Int>) = when {
+        !teamIds.contains(homeTeamId) && !teamIds.contains(awayTeamId) -> null
+        teamIds.contains(awayTeamId) -> homeScores
+        else -> awayScores
+    }
+}
