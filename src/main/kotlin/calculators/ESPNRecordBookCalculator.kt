@@ -25,8 +25,8 @@ object ESPNRecordBookCalculator {
             fewestPointsAllowedWithPlayoffs = getFewestPointsAllowed(matchups, true),
             longestWinningStreak = getLongestWinningStreak(matchups),
             longestWinningStreakWithPlayoffs = getLongestWinningStreak(matchups, true),
-            longestLosingStreak = getLongestLosingStreak(matchups),
-            longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, true),
+            //longestLosingStreak = getLongestLosingStreak(matchups),
+            //longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, true),
             lowestWinningScore = getLowestWinningScore(matchups),
             highestLosingScore = getHighestLosingScore(matchups),
         )
@@ -225,33 +225,43 @@ object ESPNRecordBookCalculator {
                 )
             }
             .groupBy { (teamId, _) -> teamId }
-            .mapValues { (_, results) ->
+            .mapValues { (teamId, results) ->
                 results
                     .map { (_, won) -> won }
-                    .fold(Streak()) { streak, result ->
+                    .fold(Streaks()) { streaks, result ->
                         if (result.teamWon) {
-                            Streak(
+                            streaks.copy(
+                                current = streaks.current + 1,
+                                currentYear = if (streaks.currentYear == 0) result.startYear else streaks.currentYear
+                            )
+                            /*Streak(
                                 maxOf(streak.max, streak.current + 1),
                                 if (streak.current >= streak.max) result.startYear else streak.maxYear,
                                 streak.current + 1,
                                 if (streak.currentYear == 0) result.startYear else streak.currentYear
-                            )
+                            )*/
                         } else {
-                            Streak(streak.max, streak.maxYear)
+                            streaks.copy(
+                                current = 0,
+                                streaks = streaks.streaks + Streak(teamId, streaks.currentYear, streaks.current)
+                            )
+                            //Streak(streak.max, streak.maxYear)
                         }
                     }
             }
-            .map { (teamId, streak) ->
+            .values
+            .flatMap { it.streaks }
+            .sortedByDescending { it.length }
+            .take(itemsToInclude)
+            .map { (teamId, year, streak) ->
                 RecordBookEntry(
-                    streak.max.toDouble(),
-                    mapOf(teamId to streak.max.toDouble()),
-                    season = streak.maxYear
+                    streak.toDouble(),
+                    mapOf(teamId to streak.toDouble()),
+                    season = year
                 )
             }
-            .sortedByDescending { it.value }
-            .take(itemsToInclude)
 
-    private fun getLongestLosingStreak(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+    /*private fun getLongestLosingStreak(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
         matchups
             .filter { it.week <= 13 || includePlayoffs }
             .flatMap { matchup ->
@@ -287,7 +297,7 @@ object ESPNRecordBookCalculator {
                 )
             }
             .sortedByDescending { it.value }
-            .take(itemsToInclude)
+            .take(itemsToInclude)*/
 
     private fun getLowestWinningScore(matchups: List<Matchup>) =
         matchups.sortedBy { maxOf(it.homeScores.standardScore, it.awayScores.standardScore) }.map { matchup ->
