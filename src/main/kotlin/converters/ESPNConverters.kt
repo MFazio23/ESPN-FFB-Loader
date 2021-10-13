@@ -3,8 +3,13 @@ package dev.mfazio.espnffb.converters
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 
-fun getMatchupsFromScoreboards(scoreboards: List<ESPNScoreboard>, allTeams: Map<Int, List<Team>?>): List<Matchup?> =
-    scoreboards.flatMap { scoreboard ->
+fun getMatchupsFromScoreboards(
+    scoreboards: List<ESPNScoreboard>,
+    teamsMap: Map<Int, List<Team>?>? = null
+): List<Matchup?> {
+    val allTeams = teamsMap ?: getTeamYearMapFromScoreboards(scoreboards)
+
+    return scoreboards.flatMap { scoreboard ->
         val teams = allTeams[scoreboard.seasonId] ?: listOf()
 
         scoreboard.schedule.filter { it.matchupPeriodId == scoreboard.scoringPeriodId }.map { schedule ->
@@ -39,6 +44,7 @@ fun getMatchupsFromScoreboards(scoreboards: List<ESPNScoreboard>, allTeams: Map<
             )
         }
     }
+}
 
 
 fun getMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) = scoreboards

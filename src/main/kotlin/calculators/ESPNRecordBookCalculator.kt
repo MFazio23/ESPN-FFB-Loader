@@ -25,8 +25,8 @@ object ESPNRecordBookCalculator {
             fewestPointsAllowedWithPlayoffs = getFewestPointsAllowed(matchups, true),
             longestWinningStreak = getLongestWinningStreak(matchups),
             longestWinningStreakWithPlayoffs = getLongestWinningStreak(matchups, true),
-            //longestLosingStreak = getLongestLosingStreak(matchups),
-            //longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, true),
+            longestLosingStreak = getLongestLosingStreak(matchups),
+            longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, true),
             lowestWinningScore = getLowestWinningScore(matchups),
             highestLosingScore = getHighestLosingScore(matchups),
         )
@@ -213,91 +213,72 @@ object ESPNRecordBookCalculator {
             .sortedBy { it.value }
             .take(itemsToInclude)
 
-    private fun getLongestWinningStreak(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
-        matchups
-            .filter { it.week <= 13 || includePlayoffs }
-            .flatMap { matchup ->
-                val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
+    private fun getLongestStreak(
+        matchups: List<Matchup>,
+        includePlayoffs: Boolean = false,
+        matchupMapFunction: (matchup: Matchup, homeTeamWon: Boolean) -> List<Pair<Int, StreakItem>>
+    ) = matchups
+        .filter { it.week <= 13 || includePlayoffs }
+        .flatMap { matchup ->
+            val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
                     (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
-                listOf(
-                    matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
-                    matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
-                )
-            }
-            .groupBy { (teamId, _) -> teamId }
-            .mapValues { (teamId, results) ->
-                results
-                    .map { (_, won) -> won }
-                    .fold(Streaks()) { streaks, result ->
-                        if (result.teamWon) {
-                            streaks.copy(
-                                current = streaks.current + 1,
-                                currentYear = if (streaks.currentYear == 0) result.startYear else streaks.currentYear
-                            )
-                            /*Streak(
-                                maxOf(streak.max, streak.current + 1),
-                                if (streak.current >= streak.max) result.startYear else streak.maxYear,
-                                streak.current + 1,
-                                if (streak.currentYear == 0) result.startYear else streak.currentYear
-                            )*/
+            matchupMapFunction(matchup, homeTeamWon)
+        }
+        .groupBy { (teamId, _) -> teamId }
+        .mapValues { (teamId, streakItems) ->
+            streakItems
+                .fold(Streaks()) { streaks, (_, streakItem) ->
+                    if (streakItem.teamWon) {
+                        streaks.copy(
+                            current = streaks.current + 1,
+                            currentYear = if (streaks.currentYear == 0) streakItem.startYear else streaks.currentYear
+                        )
+                    } else {
+                        val currentStreak = streaks.streaks + if (streaks.current == 0) {
+                            emptyList()
                         } else {
-                            streaks.copy(
-                                current = 0,
-                                streaks = streaks.streaks + Streak(teamId, streaks.currentYear, streaks.current)
-                            )
-                            //Streak(streak.max, streak.maxYear)
+                            listOf(Streak(teamId, streaks.currentYear, streaks.current))
                         }
+                        streaks.copy(
+                            current = 0,
+                            currentYear = 0,
+                            streaks = currentStreak
+                        )
                     }
-            }
-            .values
-            .flatMap { it.streaks }
-            .sortedByDescending { it.length }
-            .take(itemsToInclude)
-            .map { (teamId, year, streak) ->
-                RecordBookEntry(
-                    streak.toDouble(),
-                    mapOf(teamId to streak.toDouble()),
-                    season = year
-                )
-            }
+                }
+                .let { streaks ->
+                    if (streaks.current > 0) streaks.copy(
+                        streaks = streaks.streaks + Streak(teamId, streaks.currentYear, streaks.current)
+                    ) else streaks
+                }
+        }
+        .values
+        .flatMap { it.streaks }
+        .sortedWith(compareBy({ -it.length }, { it.startYear }))
+        .take(itemsToInclude)
+        .map { (teamId, year, streak) ->
+            RecordBookEntry(
+                streak.toDouble(),
+                mapOf(teamId to streak.toDouble()),
+                season = year
+            )
+        }
 
-    /*private fun getLongestLosingStreak(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
-        matchups
-            .filter { it.week <= 13 || includePlayoffs }
-            .flatMap { matchup ->
-                val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
-                    (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
-                listOf(
-                    matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
-                    matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
-                )
-            }
-            .groupBy { (teamId, _) -> teamId }
-            .mapValues { (_, results) ->
-                results
-                    .map { (_, won) -> won }
-                    .fold(Streak()) { streak, result ->
-                        if (!result.teamWon) {
-                            Streak(
-                                maxOf(streak.max, streak.current + 1),
-                                if (streak.current >= streak.max) result.startYear else streak.maxYear,
-                                streak.current + 1,
-                                if (streak.currentYear == 0) result.startYear else streak.currentYear
-                            )
-                        } else {
-                            Streak(streak.max, streak.maxYear)
-                        }
-                    }
-            }
-            .map { (teamId, streak) ->
-                RecordBookEntry(
-                    streak.max.toDouble(),
-                    mapOf(teamId to streak.max.toDouble()),
-                    season = streak.maxYear
-                )
-            }
-            .sortedByDescending { it.value }
-            .take(itemsToInclude)*/
+    private fun getLongestWinningStreak(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+        getLongestStreak(matchups, includePlayoffs) { matchup, homeTeamWon ->
+            listOf(
+                matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
+                matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon),
+            )
+        }
+
+    private fun getLongestLosingStreak(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+        getLongestStreak(matchups, includePlayoffs) { matchup, homeTeamWon ->
+            listOf(
+                matchup.homeTeamId to StreakItem(matchup.year, !homeTeamWon),
+                matchup.awayTeamId to StreakItem(matchup.year, homeTeamWon),
+            )
+        }
 
     private fun getLowestWinningScore(matchups: List<Matchup>) =
         matchups.sortedBy { maxOf(it.homeScores.standardScore, it.awayScores.standardScore) }.map { matchup ->
