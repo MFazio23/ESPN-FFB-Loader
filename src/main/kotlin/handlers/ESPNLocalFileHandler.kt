@@ -27,11 +27,16 @@ object ESPNLocalFileHandler {
             }
         }
 
-    suspend fun saveRawDataToFiles() {
+    suspend fun saveRawDataToFiles(
+        startYear: Int = ESPNConfig.historicalStartYear,
+        endYear: Int = ESPNConfig.modernEndYear,
+        startWeek: Int = ESPNConfig.startWeek,
+        endWeek: Int = ESPNConfig.endWeek,
+    ) {
         createDataFolderAsNeeded(rawDataFolderPath)
 
-        (ESPNConfig.historicalStartYear..ESPNConfig.historicalEndYear).forEach { year ->
-            (ESPNConfig.startWeek..ESPNConfig.endWeek).forEach { week ->
+        (startYear..endYear).forEach { year ->
+            (startWeek..endWeek).forEach { week ->
                 val jsonResult = loadJsonResultForWeek(year, week, year >= 2019)
 
                 saveJsonResultForWeek(year, week, jsonResult)

@@ -8,53 +8,64 @@ import dev.mfazio.espnffb.converters.getMatchupsFromScoreboards
 import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
+import dev.mfazio.espnffb.extensions.printEach
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
 import dev.mfazio.espnffb.handlers.ESPNLocalServiceHandler
-import dev.mfazio.espnffb.types.Member
-import dev.mfazio.espnffb.types.RecordBook
-import dev.mfazio.espnffb.types.RecordBookEntry
-import dev.mfazio.espnffb.types.Streak
+import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import kotlin.system.measureTimeMillis
 
 suspend fun main() {
 
-    val endYear = 2020
-
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
+    val matchups = ESPNLocalFileHandler.loadMatchups()
+    val teamMap = getTeamYearMapFromScoreboards(scoreboards)
 
-    val allTeams = getTeamYearMapFromScoreboards(scoreboards)
+    ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups).longestWinningStreakWithPlayoffs.forEach { entry ->
+        val team = teamMap[entry.season]?.firstOrNull { it.id == entry.recordHolders.keys.firstOrNull() }
 
-    ESPNLocalFileHandler.saveMatchups(
-        getMatchupsFromScoreboards(scoreboards, allTeams)
-    )
+        println("${team?.fullName} - ${entry.value} (${entry.season})")
+    }
 
-    /*val matchups = ESPNLocalFileHandler.loadMatchups().filter { it.year <= endYear }
-    val teams = getTeamListFromScoreboards(scoreboards)
-    val members = getMemberListFromScoreboards(scoreboards).map(Member::fromESPNMember)
-
-    val standings = ESPNStandingsCalculator.getStandingsFromMatchups(matchups, members, teams)
-
-    standings
-        .sortedByDescending { it.championships?.standardScoring }
-        .map { standing ->
-            "${standing.member.fullName}: ${standing.championships?.standardScoring}"
+    /*val lists = matchups
+        .filter { it.week <= 13 }
+        .flatMap { matchup ->
+            val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
+                    (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
+            listOf(
+                matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
+                matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon)
+            )
         }
-        .forEach(::println)*/
-
-    val finalWeekOfPlayoffs = scoreboards
-        .filter { it.scoringPeriodId >= 15 && it.seasonId == 2017 }
-        .map { scoreboard ->
-            scoreboard.copy(schedule = scoreboard.schedule.filter {
-                it.matchupPeriodId == scoreboard.scoringPeriodId && it.playoffTierType == "LOSERS_CONSOLATION_LADDER"
-            })
+        .groupBy { (teamId, _) -> teamId }
+        .mapValues { (teamId, streakItems) ->
+            streakItems
+                .fold(Streaks()) { streaks, (_, streakItem) ->
+                    if (streakItem.teamWon) {
+                        streaks.copy(
+                            current = streaks.current + 1,
+                            currentYear = if (streaks.currentYear == 0) streakItem.startYear else streaks.currentYear
+                        )
+                    } else {
+                        val currentStreak = streaks.streaks + if(streaks.current == 0) {
+                            emptyList()
+                        } else {
+                            listOf(Streak(teamId, streaks.currentYear, streaks.current))
+                        }
+                        streaks.copy(
+                            current = 0,
+                            currentYear = 0,
+                            streaks = currentStreak
+                        )
+                    }
+                }
         }
+        .values
+        .flatMap { it.streaks }
+        .sortedByDescending { it.length }
+        .take(15)*/
 
-    val finalWeekMatchups = getMatchupsFromScoreboards(finalWeekOfPlayoffs, allTeams)
-        .filterNotNull()
-        .map { 
+    //lists.printEach()
 
-        }
 
-    finalWeekMatchups.forEach(::println)
 }
