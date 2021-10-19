@@ -1,5 +1,6 @@
 package dev.mfazio.espnffb.calculators
 
+import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.types.*
 import kotlin.math.abs
 
@@ -98,6 +99,7 @@ object ESPNRecordBookCalculator {
     private fun getFewestPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
         matchups
             .filter { it.week <= 13 || includePlayoffs }
+            .filter { it.year != ESPNConfig.currentYear }
             .groupBy { it.year }
             .mapValues { (_, matchups) ->
                 matchups
@@ -194,6 +196,7 @@ object ESPNRecordBookCalculator {
     private fun getFewestPointsAllowed(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
         matchups
             .filter { it.week <= 13 || includePlayoffs }
+            .filter { it.year != ESPNConfig.currentYear }
             .groupBy { it.year }
             .mapValues { (_, matchups) ->
                 matchups

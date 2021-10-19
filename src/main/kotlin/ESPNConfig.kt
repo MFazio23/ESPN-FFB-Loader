@@ -14,6 +14,7 @@ object ESPNConfig {
     const val historicalEndYear = 2018
     const val modernStartYear = 2019
     const val modernEndYear = 2021
+    const val currentYear = 2021
     const val startWeek = 1
     const val endWeek = 16
 }
