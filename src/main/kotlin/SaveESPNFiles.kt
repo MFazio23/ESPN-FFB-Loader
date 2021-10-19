@@ -11,6 +11,12 @@ import kotlinx.coroutines.delay
 
 suspend fun main() {
 
+    ESPNLocalFileHandler.saveRawDataToFiles(
+        startYear = 2021,
+        startWeek = 1,
+        endWeek = 6,
+    )
+
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
     val teamsMap = getTeamYearMapFromScoreboards(scoreboards)
 
