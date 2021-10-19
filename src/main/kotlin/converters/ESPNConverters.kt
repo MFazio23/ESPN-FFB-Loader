@@ -41,19 +41,22 @@ fun getMatchupsFromScoreboards(scoreboards: List<ESPNScoreboard>, allTeams: Map<
     }
 
 
-fun getMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) = scoreboards
+fun getESPNMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) = scoreboards
     .flatMap { it.members }
     .distinctBy { it.id }
     .map { member ->
         member.copy(id = member.id.replace("{", "").replace("}", ""))
     }
 
+fun getMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) =
+    getESPNMemberListFromScoreboards(scoreboards).map(Member::fromESPNMember)
+
 fun getTeamYearMapFromScoreboards(scoreboards: List<ESPNScoreboard>): Map<Int, List<Team>> = scoreboards
     .groupBy { it.seasonId }
     .mapValues { (_, scoreboards) -> getTeamListFromScoreboards(scoreboards) }
 
 fun getTeamListFromScoreboards(scoreboards: List<ESPNScoreboard>): List<Team> {
-    val members = getMemberListFromScoreboards(scoreboards)
+    val members = getESPNMemberListFromScoreboards(scoreboards)
 
     return scoreboards.flatMap {
         it.teams

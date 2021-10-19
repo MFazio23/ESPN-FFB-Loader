@@ -3,15 +3,14 @@ package dev.mfazio.espnffb.handlers
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import dev.mfazio.espnffb.ESPNConfig
-import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
+import dev.mfazio.espnffb.converters.getESPNMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
 import dev.mfazio.espnffb.types.Matchup
 import dev.mfazio.espnffb.types.RecordBook
-import dev.mfazio.espnffb.types.RecordBookEntry
 import dev.mfazio.espnffb.types.Team
-import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.espnffb.types.espn.ESPNMember
+import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import kotlinx.coroutines.delay
 import java.io.File
 
@@ -65,7 +64,7 @@ object ESPNLocalFileHandler {
     }
 
     fun saveMemberList(scoreboards: List<ESPNScoreboard>): List<ESPNMember> {
-        val members = getMemberListFromScoreboards(scoreboards)
+        val members = getESPNMemberListFromScoreboards(scoreboards)
 
         val type = Types.newParameterizedType(List::class.java, ESPNMember::class.java)
         val adapter = moshi.adapter<List<ESPNMember>>(type)
