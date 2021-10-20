@@ -15,8 +15,8 @@ data class Member(
             Member(
                 id = espnMember.id,
                 userName = espnMember.displayName,
-                firstName = espnMember.firstName,
-                lastName = espnMember.lastName,
+                firstName = espnMember.firstName.trim(),
+                lastName = espnMember.lastName.trim(),
             )
     }
 }

@@ -8,6 +8,7 @@ object ESPNStandingsCalculator {
         members.filter { !Standings.excludedMemberIds.contains(it.id) }.map { member ->
             Standings(
                 member = member,
+                seasons = getSeasonsForMember(member, teams),
                 wins = getWinsForMember(matchups, member, teams),
                 losses = getLossesForMember(matchups, member, teams),
                 pointsScored = getPointsScored(matchups, member, teams),
@@ -17,6 +18,16 @@ object ESPNStandingsCalculator {
                 playoffApps = null,
             )
         }
+
+    private fun getSeasonsForMember(member: Member, teamList: List<Team>): StandingsIntEntry =
+        teamList
+            .filter { it.owners.contains(member.id) }
+            .distinctBy { teams -> teams.year }
+            .count()
+            .let { count ->
+                StandingsIntEntry(count)
+            }
+
 
     private fun getWinsForMember(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsIntEntry =
         teamList.filter { it.owners.contains(member.id) }.let { teams ->

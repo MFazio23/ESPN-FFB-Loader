@@ -8,6 +8,7 @@ import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
 import dev.mfazio.espnffb.types.Matchup
 import dev.mfazio.espnffb.types.RecordBook
+import dev.mfazio.espnffb.types.Standings
 import dev.mfazio.espnffb.types.Team
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
@@ -131,6 +132,14 @@ object ESPNLocalFileHandler {
     fun saveRecordBook(recordBook: RecordBook) {
         File("$dataFolderPath/record-book.json").writeText(
             moshi.adapter(RecordBook::class.java).toJson(recordBook)
+        )
+    }
+
+    fun saveStandings(standings: List<Standings>) {
+        val type = Types.newParameterizedType(List::class.java, Standings::class.java)
+
+        File("$dataFolderPath/standings.json").writeText(
+            moshi.adapter<List<Standings>>(type).toJson(standings)
         )
     }
 }
