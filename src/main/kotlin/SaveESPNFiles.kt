@@ -16,8 +16,8 @@ suspend fun main() {
 
     /*ESPNLocalFileHandler.saveRawDataToFiles(
         startYear = 2021,
-        startWeek = 1,
-        endWeek = 6,
+        startWeek = 7,
+        endWeek = 8,
     )*/
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
@@ -32,7 +32,7 @@ suspend fun main() {
 
     ESPNLocalFileHandler.saveRecordBook(recordBook)
 
-    val standings = ESPNStandingsCalculator.getStandingsFromMatchups(matchups, members, teams)
+    val standings = ESPNStandingsCalculator.getStandingsFromMatchups(matchups, members, teams, teamsMap)
 
     ESPNLocalFileHandler.saveStandings(standings)
 
