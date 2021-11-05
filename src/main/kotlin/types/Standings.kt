@@ -8,7 +8,6 @@ data class Standings(
     val pointsScored: StandingsDoubleEntry? = null,
     val pointsAgainst: StandingsDoubleEntry? = null,
     val championships: StandingsIntEntry? = null,
-    val lastPlaces: StandingsIntEntry? = null,
     val playoffApps: StandingsIntEntry? = null,
 ) {
     companion object {
