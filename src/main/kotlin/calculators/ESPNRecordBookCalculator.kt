@@ -13,17 +13,25 @@ object ESPNRecordBookCalculator {
             mostPointsGame = getMostPointsInGame(matchups),
             mostPointsSeason = getMostPointsInSeason(matchups),
             mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, true),
+            mostPointsPerWeek = getMostPointsPerWeek(matchups),
+            mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, true),
             mostPointsMatchup = getMostPointsInMatchup(matchups),
             fewestPointsGame = getFewestPointsInGame(matchups),
             fewestPointsSeason = getFewestPointsInSeason(matchups),
             fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, true),
+            fewestPointsPerWeek = getFewestPointsPerWeek(matchups),
+            fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, true),
             fewestPointsMatchup = getFewestPointsInMatchup(matchups),
             smallestMarginOfVictory = getSmallestMarginOfVictory(matchups),
             largestMarginOfVictory = getLargestMarginOfVictory(matchups),
             mostPointsAllowed = getMostPointsAllowed(matchups),
             mostPointsAllowedWithPlayoffs = getMostPointsAllowed(matchups, true),
+            mostPointsAllowedPerWeek = getMostPointsAllowedPerWeek(matchups),
+            mostPointsAllowedPerWeekWithPlayoffs = getMostPointsAllowedPerWeek(matchups, true),
             fewestPointsAllowed = getFewestPointsAllowed(matchups),
             fewestPointsAllowedWithPlayoffs = getFewestPointsAllowed(matchups, true),
+            fewestPointsAllowedPerWeek = getFewestPointsAllowedPerWeek(matchups),
+            fewestPointsAllowedPerWeekWithPlayoffs = getFewestPointsAllowedPerWeek(matchups, true),
             longestWinningStreak = getLongestWinningStreak(matchups),
             longestWinningStreakWithPlayoffs = getLongestWinningStreak(matchups, true),
             longestLosingStreak = getLongestLosingStreak(matchups),
@@ -74,16 +82,8 @@ object ESPNRecordBookCalculator {
             .sortedBy { entry -> entry.value }
             .take(itemsToInclude)
 
-    private fun getMostPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
-        matchups
-            .filter { it.week <= 13 || includePlayoffs }
-            .groupBy { it.year }
-            .mapValues { (_, matchups) ->
-                matchups
-                    .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.homeScores) + listOf(matchup.awayTeamId to matchup.awayScores) }
-                    .groupBy { (teamId, _) -> teamId }
-                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
-            }
+    fun getMostPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+        getPointsInSeason(matchups, includePlayoffs)
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
                     RecordBookEntry(
@@ -97,16 +97,8 @@ object ESPNRecordBookCalculator {
             .take(itemsToInclude)
 
     private fun getFewestPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
-        matchups
-            .filter { it.week <= 13 || includePlayoffs }
-            .filter { it.year != ESPNConfig.currentYear }
-            .groupBy { it.year }
-            .mapValues { (_, matchups) ->
-                matchups
-                    .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.homeScores) + listOf(matchup.awayTeamId to matchup.awayScores) }
-                    .groupBy { (teamId, _) -> teamId }
-                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
-            }
+        getPointsInSeason(matchups, includePlayoffs)
+            //.filter { (year, _) -> year != ESPNConfig.currentYear }
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
                     RecordBookEntry(
@@ -118,6 +110,43 @@ object ESPNRecordBookCalculator {
             }
             .sortedBy { it.value }
             .take(itemsToInclude)
+
+    private fun getMostPointsPerWeek(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<RecordBookEntry> {
+        val seasonLengths = getWeeksForSeasons(matchups, includePlayoffs)
+
+        return getPointsInSeason(matchups, includePlayoffs)
+            .flatMap { (year, teamScores) ->
+                teamScores.map { (teamId, score) ->
+                    val weeklyScore = score / (seasonLengths[year] ?: 1)
+                    RecordBookEntry(
+                        weeklyScore,
+                        mapOf(teamId to weeklyScore),
+                        year,
+                    )
+                }
+            }
+            .sortedByDescending { it.value }
+            .take(itemsToInclude)
+    }
+
+    private fun getFewestPointsPerWeek(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<RecordBookEntry> {
+        val seasonLengths = getWeeksForSeasons(matchups, includePlayoffs)
+
+        return getPointsInSeason(matchups, includePlayoffs)
+            //.filter { (year, _) -> year != ESPNConfig.currentYear }
+            .flatMap { (year, teamScores) ->
+                teamScores.map { (teamId, score) ->
+                    val weeklyScore = score / (seasonLengths[year] ?: 1)
+                    RecordBookEntry(
+                        weeklyScore,
+                        mapOf(teamId to weeklyScore),
+                        year,
+                    )
+                }
+            }
+            .sortedBy { it.value }
+            .take(itemsToInclude)
+    }
 
     private fun getMostPointsInMatchup(matchups: List<Matchup>) =
         matchups.sortedByDescending { it.homeScores.standardScore + it.awayScores.standardScore }.map { matchup ->
@@ -172,15 +201,7 @@ object ESPNRecordBookCalculator {
         }.take(itemsToInclude)
 
     private fun getMostPointsAllowed(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
-        matchups
-            .filter { it.week <= 13 || includePlayoffs }
-            .groupBy { it.year }
-            .mapValues { (_, matchups) ->
-                matchups
-                    .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.awayScores) + listOf(matchup.awayTeamId to matchup.homeScores) }
-                    .groupBy { (teamId, _) -> teamId }
-                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
-            }
+        getPointsAllowedInSeason(matchups, includePlayoffs)
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
                     RecordBookEntry(
@@ -193,17 +214,27 @@ object ESPNRecordBookCalculator {
             .sortedByDescending { it.value }
             .take(itemsToInclude)
 
-    private fun getFewestPointsAllowed(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
-        matchups
-            .filter { it.week <= 13 || includePlayoffs }
-            .filter { it.year != ESPNConfig.currentYear }
-            .groupBy { it.year }
-            .mapValues { (_, matchups) ->
-                matchups
-                    .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.awayScores) + listOf(matchup.awayTeamId to matchup.homeScores) }
-                    .groupBy { (teamId, _) -> teamId }
-                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
+    private fun getMostPointsAllowedPerWeek(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<RecordBookEntry> {
+        val seasonLengths = getWeeksForSeasons(matchups, includePlayoffs)
+
+        return getPointsAllowedInSeason(matchups, includePlayoffs)
+            .flatMap { (year, teamScores) ->
+                teamScores.map { (teamId, score) ->
+                    val weeklyScore = score / (seasonLengths[year] ?: 1)
+                    RecordBookEntry(
+                        weeklyScore,
+                        mapOf(teamId to weeklyScore),
+                        year,
+                    )
+                }
             }
+            .sortedByDescending { it.value }
+            .take(itemsToInclude)
+    }
+
+
+    private fun getFewestPointsAllowed(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+        getPointsAllowedInSeason(matchups, includePlayoffs)
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
                     RecordBookEntry(
@@ -216,15 +247,32 @@ object ESPNRecordBookCalculator {
             .sortedBy { it.value }
             .take(itemsToInclude)
 
+    private fun getFewestPointsAllowedPerWeek(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<RecordBookEntry> {
+        val seasonLengths = getWeeksForSeasons(matchups, includePlayoffs)
+
+        return getPointsAllowedInSeason(matchups, includePlayoffs)
+            .flatMap { (year, teamScores) ->
+                teamScores.map { (teamId, score) ->
+                    val weeklyScore = score / (seasonLengths[year] ?: 1)
+                    RecordBookEntry(
+                        weeklyScore,
+                        mapOf(teamId to weeklyScore),
+                        year,
+                    )
+                }
+            }
+            .sortedBy { it.value }
+            .take(itemsToInclude)
+    }
+
     private fun getLongestStreak(
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
         matchupMapFunction: (matchup: Matchup, homeTeamWon: Boolean) -> List<Pair<Int, StreakItem>>
-    ) = matchups
-        .filter { it.week <= 13 || includePlayoffs }
+    ) = getProperMatchups(matchups, includePlayoffs)
         .flatMap { matchup ->
             val homeTeamWon = matchup.homeScores.standardScore > matchup.awayScores.standardScore ||
-                    (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
+                (matchup.homeScores.standardScore == matchup.awayScores.standardScore && matchup.isHomeOriginalWinner)
             matchupMapFunction(matchup, homeTeamWon)
         }
         .groupBy { (teamId, _) -> teamId }
@@ -308,4 +356,38 @@ object ESPNRecordBookCalculator {
                 matchup.week,
             )
         }.take(itemsToInclude)
+
+    private fun getPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean) =
+        getProperMatchups(matchups, includePlayoffs)
+            .groupBy { it.year }
+            .mapValues { (_, matchups) ->
+                matchups
+                    .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.homeScores) + listOf(matchup.awayTeamId to matchup.awayScores) }
+                    .groupBy { (teamId, _) -> teamId }
+                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
+            }
+
+    private fun getPointsAllowedInSeason(matchups: List<Matchup>, includePlayoffs: Boolean) =
+        getProperMatchups(matchups, includePlayoffs)
+            .groupBy { it.year }
+            .mapValues { (_, matchups) ->
+                matchups
+                    .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.awayScores) + listOf(matchup.awayTeamId to matchup.homeScores) }
+                    .groupBy { (teamId, _) -> teamId }
+                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
+            }
+
+    private fun getProperMatchups(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<Matchup> = matchups
+        .groupBy { it.year }
+        .mapValues { (_, matchups) ->
+            matchups
+                .groupBy { it.week }
+                .filterValues { weekMatchups -> includePlayoffs || weekMatchups.none { it.playoffTierType != PlayoffTierType.None } }
+        }
+        .values.flatMap { it.values }.flatten()
+
+    private fun getWeeksForSeasons(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+        getProperMatchups(matchups, includePlayoffs)
+            .groupBy { it.year }
+            .mapValues { (_, yearMatchups) -> yearMatchups.distinctBy { it.week }.size }
 }

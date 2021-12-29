@@ -4,7 +4,6 @@ import dev.mfazio.espnffb.types.*
 
 object ESPNStandingsCalculator {
 
-    //TODO: Convert to teamsMap
     fun getStandingsFromMatchups(
         matchups: List<Matchup>,
         members: List<Member>,
@@ -21,6 +20,7 @@ object ESPNStandingsCalculator {
                 pointsAgainst = getPointsAgainst(matchups, member, teams),
                 championships = getChampionshipCount(matchups, member, teams),
                 playoffApps = getPlayoffAppearanceCount(matchups, member, teamsMap),
+                championshipApps = getChampionshipGameAppearances(matchups, member, teams),
             )
         }
 
@@ -123,13 +123,31 @@ object ESPNStandingsCalculator {
     private fun getChampionshipCount(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsIntEntry =
         teamList.filter { it.owners.contains(member.id) }.let { teams ->
             matchups
-                .filter { matchup -> matchup.week == 16 && matchup.playoffTierType == PlayoffTierType.WinnersBracket }
+                .groupBy { "${it.year}-${it.week}" }
+                .values
+                .filter { matchups -> matchups.count { it.playoffTierType == PlayoffTierType.WinnersBracket } == 1 }
+                .map { matchups -> matchups.first { it.playoffTierType == PlayoffTierType.WinnersBracket } }
                 .filter { matchup ->
-                    teams.filter { it.year == matchup.year }
+                    teams
+                        .filter { it.year == matchup.year }
                         .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
                 }
                 .count { matchup ->
                     matchup.didTeamWin(teams.filter { it.year == matchup.year }.map { it.id })
+                }.toStandingsIntEntry()
+        }
+
+    private fun getChampionshipGameAppearances(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsIntEntry =
+        teamList.filter { it.owners.contains(member.id) }.let { teams ->
+            matchups
+                .groupBy { "${it.year}-${it.week}" }
+                .values
+                .filter { matchups -> matchups.count { it.playoffTierType == PlayoffTierType.WinnersBracket } == 1 }
+                .map { matchups -> matchups.first { it.playoffTierType == PlayoffTierType.WinnersBracket } }
+                .count { matchup ->
+                    teams
+                        .filter { it.year == matchup.year }
+                        .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
                 }.toStandingsIntEntry()
         }
 

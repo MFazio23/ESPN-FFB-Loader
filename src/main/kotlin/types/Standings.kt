@@ -9,6 +9,7 @@ data class Standings(
     val pointsAgainst: StandingsDoubleEntry? = null,
     val championships: StandingsIntEntry? = null,
     val playoffApps: StandingsIntEntry? = null,
+    val championshipApps: StandingsIntEntry? = null,
 ) {
     companion object {
         val excludedMemberIds = listOf(
