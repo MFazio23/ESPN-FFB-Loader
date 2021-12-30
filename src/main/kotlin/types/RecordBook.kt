@@ -2,8 +2,11 @@ package dev.mfazio.espnffb.types
 
 data class RecordBook(
     val mostPointsGame: List<RecordBookEntry> = emptyList(),
+    val mostPointsGameBestBall: List<RecordBookEntry> = emptyList(),
     val mostPointsSeason: List<RecordBookEntry> = emptyList(),
+    val mostPointsSeasonBestBall: List<RecordBookEntry> = emptyList(),
     val mostPointsSeasonWithPlayoffs: List<RecordBookEntry> = emptyList(),
+    val mostPointsSeasonBestBallWithPlayoffs: List<RecordBookEntry> = emptyList(),
     val mostPointsPerWeek: List<RecordBookEntry> = emptyList(),
     val mostPointsPerWeekWithPlayoffs: List<RecordBookEntry> = emptyList(),
     val mostPointsMatchup: List<RecordBookEntry> = emptyList(),

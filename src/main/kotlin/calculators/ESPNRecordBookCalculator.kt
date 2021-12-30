@@ -11,8 +11,11 @@ object ESPNRecordBookCalculator {
     fun getRecordBookFromMatchups(matchups: List<Matchup>): RecordBook =
         RecordBook(
             mostPointsGame = getMostPointsInGame(matchups),
+            mostPointsGameBestBall = getMostPointsInGameBestBall(matchups),
             mostPointsSeason = getMostPointsInSeason(matchups),
+            mostPointsSeasonBestBall = getMostPointsInSeasonBestBall(matchups),
             mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, true),
+            mostPointsSeasonBestBallWithPlayoffs = getMostPointsInSeasonBestBall(matchups, true),
             mostPointsPerWeek = getMostPointsPerWeek(matchups),
             mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, true),
             mostPointsMatchup = getMostPointsInMatchup(matchups),
@@ -61,6 +64,27 @@ object ESPNRecordBookCalculator {
             .sortedByDescending { entry -> entry.value }
             .take(itemsToInclude)
 
+    private fun getMostPointsInGameBestBall(matchups: List<Matchup>) =
+        matchups
+            .flatMap { matchup ->
+                listOf(
+                    RecordBookEntry(
+                        (matchup.homeScores.bestBallScore ?: matchup.homeScores.standardScore),
+                        mapOf(matchup.homeTeamId to (matchup.homeScores.bestBallScore ?: matchup.homeScores.standardScore)),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                    RecordBookEntry(
+                        (matchup.awayScores.bestBallScore ?: matchup.awayScores.standardScore),
+                        mapOf(matchup.awayTeamId to (matchup.awayScores.bestBallScore ?: matchup.awayScores.standardScore)),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                )
+            }
+            .sortedByDescending { entry -> entry.value }
+            .take(itemsToInclude)
+
     private fun getFewestPointsInGame(matchups: List<Matchup>) =
         matchups
             .flatMap { matchup ->
@@ -84,6 +108,20 @@ object ESPNRecordBookCalculator {
 
     fun getMostPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
         getPointsInSeason(matchups, includePlayoffs)
+            .flatMap { (year, teamScores) ->
+                teamScores.map { (teamId, score) ->
+                    RecordBookEntry(
+                        score,
+                        mapOf(teamId to score),
+                        year,
+                    )
+                }
+            }
+            .sortedByDescending { it.value }
+            .take(itemsToInclude)
+
+    fun getMostPointsInSeasonBestBall(matchups: List<Matchup>, includePlayoffs: Boolean = false) =
+        getPointsInSeason(matchups, includePlayoffs, useBestBall = true)
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
                     RecordBookEntry(
@@ -357,14 +395,18 @@ object ESPNRecordBookCalculator {
             )
         }.take(itemsToInclude)
 
-    private fun getPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean) =
+    private fun getPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, useBestBall: Boolean = false) =
         getProperMatchups(matchups, includePlayoffs)
             .groupBy { it.year }
             .mapValues { (_, matchups) ->
                 matchups
                     .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.homeScores) + listOf(matchup.awayTeamId to matchup.awayScores) }
                     .groupBy { (teamId, _) -> teamId }
-                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scores.standardScore } }
+                    .mapValues { (_, teamScores) ->
+                        teamScores.sumOf { (_, scores) ->
+                            (if (useBestBall) scores.bestBallScore else null) ?: scores.standardScore
+                        }
+                    }
             }
 
     private fun getPointsAllowedInSeason(matchups: List<Matchup>, includePlayoffs: Boolean) =
