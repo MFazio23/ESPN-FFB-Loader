@@ -6,7 +6,6 @@ import dev.mfazio.espnffb.converters.getMatchupsFromScoreboards
 import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
-import dev.mfazio.espnffb.extensions.printEach
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
 import dev.mfazio.espnffb.handlers.ESPNLocalServiceHandler
 import dev.mfazio.espnffb.handlers.ESPNServiceHandler
@@ -14,11 +13,11 @@ import kotlinx.coroutines.delay
 
 suspend fun main() {
 
-    /*ESPNLocalFileHandler.saveRawDataToFiles(
-        startYear = 2021,
-        startWeek = 7,
-        endWeek = 8,
-    )*/
+    ESPNLocalFileHandler.saveRawDataToFiles(
+        startYear = 2022,
+        startWeek = 1,
+        endWeek = 1,
+    )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
     val teamsMap = getTeamYearMapFromScoreboards(scoreboards)

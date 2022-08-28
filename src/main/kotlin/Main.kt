@@ -6,8 +6,9 @@ import dev.mfazio.espnffb.converters.getMatchupsFromScoreboards
 import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
-import dev.mfazio.espnffb.extensions.printEach
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
+import dev.mfazio.espnffb.types.*
+import dev.mfazio.utils.extensions.printEach
 
 suspend fun main() {
 
