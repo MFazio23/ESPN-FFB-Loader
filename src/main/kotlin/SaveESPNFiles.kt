@@ -7,16 +7,14 @@ import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
-import dev.mfazio.espnffb.handlers.ESPNLocalServiceHandler
-import dev.mfazio.espnffb.handlers.ESPNServiceHandler
-import kotlinx.coroutines.delay
+import dev.mfazio.espnffb.types.RecordBooks
 
 suspend fun main() {
 
     ESPNLocalFileHandler.saveRawDataToFiles(
         startYear = 2022,
-        startWeek = 1,
-        endWeek = 1,
+        startWeek = 3,
+        endWeek = 3,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
@@ -27,12 +25,17 @@ suspend fun main() {
     val matchups = getMatchupsFromScoreboards(scoreboards, teamsMap).filterNotNull()
     ESPNLocalFileHandler.saveMatchups(matchups)
 
-    val recordBook = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups)
-
-    ESPNLocalFileHandler.saveRecordBook(recordBook)
+    val recordBooks = RecordBooks(
+        standard = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups),
+        modern = ESPNRecordBookCalculator.getModernRecordBook(matchups),
+        bestBall = ESPNRecordBookCalculator.getBestBallRecordBook(matchups),
+    )
+    ESPNLocalFileHandler.saveRecordBooks(recordBooks)
 
     val standings = ESPNStandingsCalculator.getStandingsFromMatchups(matchups, members, teams, teamsMap)
-
     ESPNLocalFileHandler.saveStandings(standings)
+
+    ESPNLocalFileHandler.saveTeamYearMap(scoreboards)
+    ESPNLocalFileHandler.saveMemberList(scoreboards)
 
 }

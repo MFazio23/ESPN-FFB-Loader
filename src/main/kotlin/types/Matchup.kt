@@ -11,6 +11,7 @@ data class Matchup(
     val playoffTierType: PlayoffTierType? = null,
     val isHomeOriginalWinner: Boolean = true,
 ) {
+    fun didTeamWin(teamId: Int) = didTeamWin(listOf(teamId))
     fun didTeamWin(teamIds: List<Int>) =
         (teamIds.contains(homeTeamId) && (homeScores.standardScore > awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && isHomeOriginalWinner)) ||
             (teamIds.contains(awayTeamId) && (homeScores.standardScore < awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && !isHomeOriginalWinner))

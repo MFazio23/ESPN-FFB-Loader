@@ -6,10 +6,7 @@ import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.converters.getESPNMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
-import dev.mfazio.espnffb.types.Matchup
-import dev.mfazio.espnffb.types.RecordBook
-import dev.mfazio.espnffb.types.Standings
-import dev.mfazio.espnffb.types.Team
+import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import kotlinx.coroutines.delay
@@ -129,9 +126,9 @@ object ESPNLocalFileHandler {
             ?: emptyList()
     }
 
-    fun saveRecordBook(recordBook: RecordBook) {
+    fun saveRecordBooks(recordBooks: RecordBooks) {
         File("$dataFolderPath/record-book.json").writeText(
-            moshi.adapter(RecordBook::class.java).toJson(recordBook)
+            moshi.adapter(RecordBooks::class.java).toJson(recordBooks)
         )
     }
 
