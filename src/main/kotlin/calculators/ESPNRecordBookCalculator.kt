@@ -41,38 +41,7 @@ object ESPNRecordBookCalculator {
         )
 
     fun getModernRecordBook(allMatchups: List<Matchup>): RecordBook =
-        allMatchups.afterIncrease().let { matchups ->
-            RecordBook(
-                mostPointsGame = getMostPointsInGame(matchups),
-                mostPointsSeason = getMostPointsInSeason(matchups),
-                mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, true),
-                mostPointsPerWeek = getMostPointsPerWeek(matchups),
-                mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, true),
-                mostPointsMatchup = getMostPointsInMatchup(matchups),
-                fewestPointsGame = getFewestPointsInGame(matchups),
-                fewestPointsSeason = getFewestPointsInSeason(matchups),
-                fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, true),
-                fewestPointsPerWeek = getFewestPointsPerWeek(matchups),
-                fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, true),
-                fewestPointsMatchup = getFewestPointsInMatchup(matchups),
-                smallestMarginOfVictory = getSmallestMarginOfVictory(matchups),
-                largestMarginOfVictory = getLargestMarginOfVictory(matchups),
-                mostPointsAllowed = getMostPointsAllowed(matchups),
-                mostPointsAllowedWithPlayoffs = getMostPointsAllowed(matchups, true),
-                mostPointsAllowedPerWeek = getMostPointsAllowedPerWeek(matchups),
-                mostPointsAllowedPerWeekWithPlayoffs = getMostPointsAllowedPerWeek(matchups, true),
-                fewestPointsAllowed = getFewestPointsAllowed(matchups),
-                fewestPointsAllowedWithPlayoffs = getFewestPointsAllowed(matchups, true),
-                fewestPointsAllowedPerWeek = getFewestPointsAllowedPerWeek(matchups),
-                fewestPointsAllowedPerWeekWithPlayoffs = getFewestPointsAllowedPerWeek(matchups, true),
-                longestWinningStreak = getLongestWinningStreak(matchups),
-                longestWinningStreakWithPlayoffs = getLongestWinningStreak(matchups, true),
-                longestLosingStreak = getLongestLosingStreak(matchups),
-                longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, true),
-                lowestWinningScore = getLowestWinningScore(matchups),
-                highestLosingScore = getHighestLosingScore(matchups),
-            )
-        }
+        getRecordBookFromMatchups(allMatchups.afterIncrease())
 
     fun getBestBallRecordBook(allMatchups: List<Matchup>): RecordBook =
         allMatchups.afterIncrease().let { matchups ->
@@ -105,53 +74,55 @@ object ESPNRecordBookCalculator {
                 longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 lowestWinningScore = getLowestWinningScore(matchups, bestBallScoreFunc),
                 highestLosingScore = getHighestLosingScore(matchups, bestBallScoreFunc),
+                mostPointsMissed = getMostPointsMissed(matchups),
             )
         }
 
     private fun getMostPointsInGame(
         matchups: List<Matchup>,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
-    ) =
-        matchups
-            .flatMap { matchup ->
-                listOf(
-                    RecordBookEntry(
-                        scoreFunction(matchup.homeScores),
-                        mapOf(matchup.homeTeamId to scoreFunction(matchup.homeScores)),
-                        matchup.year,
-                        matchup.week,
-                    ),
-                    RecordBookEntry(
-                        scoreFunction(matchup.awayScores),
-                        mapOf(matchup.awayTeamId to scoreFunction(matchup.awayScores)),
-                        matchup.year,
-                        matchup.week,
-                    ),
-                )
-            }
-            .sortedByDescending { entry -> entry.value }
-            .take(itemsToInclude)
+    ) = matchups
+        .flatMap { matchup ->
+            listOf(
+                RecordBookEntry(
+                    scoreFunction(matchup.homeScores),
+                    mapOf(matchup.homeTeamId to scoreFunction(matchup.homeScores)),
+                    matchup.year,
+                    matchup.week,
+                ),
+                RecordBookEntry(
+                    scoreFunction(matchup.awayScores),
+                    mapOf(matchup.awayTeamId to scoreFunction(matchup.awayScores)),
+                    matchup.year,
+                    matchup.week,
+                ),
+            )
+        }
+        .sortedByDescending { entry -> entry.value }
+        .take(itemsToInclude)
 
-    private fun getFewestPointsInGame(matchups: List<Matchup>, scoreFunction: (TeamScores) -> Double = standardScoreFunc) =
-        matchups
-            .flatMap { matchup ->
-                listOf(
-                    RecordBookEntry(
-                        scoreFunction(matchup.homeScores),
-                        mapOf(matchup.homeTeamId to scoreFunction(matchup.homeScores)),
-                        matchup.year,
-                        matchup.week,
-                    ),
-                    RecordBookEntry(
-                        scoreFunction(matchup.awayScores),
-                        mapOf(matchup.awayTeamId to scoreFunction(matchup.awayScores)),
-                        matchup.year,
-                        matchup.week,
-                    ),
-                )
-            }
-            .sortedBy { entry -> entry.value }
-            .take(itemsToInclude)
+    private fun getFewestPointsInGame(
+        matchups: List<Matchup>,
+        scoreFunction: (TeamScores) -> Double = standardScoreFunc
+    ) = matchups
+        .flatMap { matchup ->
+            listOf(
+                RecordBookEntry(
+                    scoreFunction(matchup.homeScores),
+                    mapOf(matchup.homeTeamId to scoreFunction(matchup.homeScores)),
+                    matchup.year,
+                    matchup.week,
+                ),
+                RecordBookEntry(
+                    scoreFunction(matchup.awayScores),
+                    mapOf(matchup.awayTeamId to scoreFunction(matchup.awayScores)),
+                    matchup.year,
+                    matchup.week,
+                ),
+            )
+        }
+        .sortedBy { entry -> entry.value }
+        .take(itemsToInclude)
 
     private fun getMostPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false, useBestBall: Boolean = false) =
         getPointsInSeason(matchups, includePlayoffs, useBestBall)
@@ -492,6 +463,27 @@ object ESPNRecordBookCalculator {
                     .groupBy { (teamId, _) -> teamId }
                     .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scoreFunction(scores) } }
             }
+
+    private fun getMostPointsMissed(matchups: List<Matchup>) =
+        matchups
+            .flatMap { matchup ->
+                listOf(
+                    RecordBookEntry(
+                        matchup.homeScores.getBestBallGap(),
+                        mapOf(matchup.homeTeamId to matchup.homeScores.getBestBallGap()),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                    RecordBookEntry(
+                        matchup.awayScores.getBestBallGap(),
+                        mapOf(matchup.awayTeamId to matchup.awayScores.getBestBallGap()),
+                        matchup.year,
+                        matchup.week,
+                    ),
+                )
+            }
+            .sortedByDescending { entry -> entry.value }
+            .take(itemsToInclude)
 
     private fun getProperMatchups(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<Matchup> = matchups
         .groupBy { it.year }

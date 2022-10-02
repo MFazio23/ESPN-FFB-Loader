@@ -29,4 +29,5 @@ data class RecordBook(
     val longestLosingStreakWithPlayoffs: List<RecordBookEntry> = emptyList(),
     val lowestWinningScore: List<RecordBookEntry> = emptyList(),
     val highestLosingScore: List<RecordBookEntry> = emptyList(),
+    val mostPointsMissed: List<RecordBookEntry> = emptyList(),
 )
