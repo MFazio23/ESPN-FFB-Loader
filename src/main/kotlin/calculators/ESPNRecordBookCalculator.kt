@@ -47,16 +47,16 @@ object ESPNRecordBookCalculator {
         allMatchups.afterIncrease().let { matchups ->
             RecordBook(
                 mostPointsGame = getMostPointsInGame(matchups, bestBallScoreFunc),
-                mostPointsSeason = getMostPointsInSeason(matchups, useBestBall = true),
-                mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, includePlayoffs = true, useBestBall = true),
-                mostPointsPerWeek = getMostPointsPerWeek(matchups, useBestBall = true),
-                mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, includePlayoffs = true, useBestBall = true),
+                mostPointsSeason = getMostPointsInSeason(matchups, scoreFunction = bestBallScoreFunc),
+                mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                mostPointsPerWeek = getMostPointsPerWeek(matchups, scoreFunction = bestBallScoreFunc),
+                mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsMatchup = getMostPointsInMatchup(matchups, bestBallScoreFunc),
                 fewestPointsGame = getFewestPointsInGame(matchups),
-                fewestPointsSeason = getFewestPointsInSeason(matchups, useBestBall = true),
-                fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true, useBestBall = true),
-                fewestPointsPerWeek = getFewestPointsPerWeek(matchups, useBestBall = true),
-                fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, includePlayoffs = true, useBestBall = true),
+                fewestPointsSeason = getFewestPointsInSeason(matchups, scoreFunction = bestBallScoreFunc),
+                fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                fewestPointsPerWeek = getFewestPointsPerWeek(matchups, scoreFunction = bestBallScoreFunc),
+                fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 fewestPointsMatchup = getFewestPointsInMatchup(matchups, bestBallScoreFunc),
                 smallestMarginOfVictory = getSmallestMarginOfVictory(matchups, bestBallScoreFunc),
                 largestMarginOfVictory = getLargestMarginOfVictory(matchups, bestBallScoreFunc),
@@ -74,7 +74,8 @@ object ESPNRecordBookCalculator {
                 longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 lowestWinningScore = getLowestWinningScore(matchups, bestBallScoreFunc),
                 highestLosingScore = getHighestLosingScore(matchups, bestBallScoreFunc),
-                mostPointsMissed = getMostPointsMissed(matchups),
+                mostPointsMissed = getMostPointsInGame(matchups, bestBallGapFunc),
+                mostPointsMissedInSeason = getMostPointsInSeason(matchups, scoreFunction = bestBallGapFunc),
             )
         }
 
@@ -124,22 +125,28 @@ object ESPNRecordBookCalculator {
         .sortedBy { entry -> entry.value }
         .take(itemsToInclude)
 
-    private fun getMostPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false, useBestBall: Boolean = false) =
-        getPointsInSeason(matchups, includePlayoffs, useBestBall)
-            .flatMap { (year, teamScores) ->
-                teamScores.map { (teamId, score) ->
-                    RecordBookEntry(
-                        score,
-                        mapOf(teamId to score),
-                        year,
-                    )
-                }
+    private fun getMostPointsInSeason(
+        matchups: List<Matchup>,
+        includePlayoffs: Boolean = false,
+        scoreFunction: (TeamScores) -> Double = standardScoreFunc
+    ) = getPointsInSeason(matchups, includePlayoffs, scoreFunction)
+        .flatMap { (year, teamScores) ->
+            teamScores.map { (teamId, score) ->
+                RecordBookEntry(
+                    score,
+                    mapOf(teamId to score),
+                    year,
+                )
             }
-            .sortedByDescending { it.value }
-            .take(itemsToInclude)
+        }
+        .sortedByDescending { it.value }
+        .take(itemsToInclude)
 
-    private fun getFewestPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean = false, useBestBall: Boolean = false) =
-        getPointsInSeason(matchups, includePlayoffs, useBestBall)
+    private fun getFewestPointsInSeason(
+        matchups: List<Matchup>,
+        includePlayoffs: Boolean = false,
+        scoreFunction: (TeamScores) -> Double = standardScoreFunc
+    ) =        getPointsInSeason(matchups, includePlayoffs, scoreFunction)
             .filter { (year, _) -> year != ESPNConfig.currentYear }
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
@@ -156,11 +163,11 @@ object ESPNRecordBookCalculator {
     private fun getMostPointsPerWeek(
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
-        useBestBall: Boolean = false
+        scoreFunction: (TeamScores) -> Double = standardScoreFunc,
     ): List<RecordBookEntry> {
         val seasonLengths = getWeeksForSeasons(matchups, includePlayoffs)
 
-        return getPointsInSeason(matchups, includePlayoffs, useBestBall)
+        return getPointsInSeason(matchups, includePlayoffs, scoreFunction)
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
                     val weeklyScore = score / (seasonLengths[year] ?: 1)
@@ -175,10 +182,14 @@ object ESPNRecordBookCalculator {
             .take(itemsToInclude)
     }
 
-    private fun getFewestPointsPerWeek(matchups: List<Matchup>, includePlayoffs: Boolean = false, useBestBall: Boolean = false): List<RecordBookEntry> {
+    private fun getFewestPointsPerWeek(
+        matchups: List<Matchup>,
+        includePlayoffs: Boolean = false,
+        scoreFunction: (TeamScores) -> Double = standardScoreFunc
+    ): List<RecordBookEntry> {
         val seasonLengths = getWeeksForSeasons(matchups, includePlayoffs)
 
-        return getPointsInSeason(matchups, includePlayoffs, useBestBall)
+        return getPointsInSeason(matchups, includePlayoffs, scoreFunction)
             .filter { (year, _) -> year != ESPNConfig.currentYear }
             .flatMap { (year, teamScores) ->
                 teamScores.map { (teamId, score) ->
@@ -438,7 +449,7 @@ object ESPNRecordBookCalculator {
             )
         }.take(itemsToInclude)
 
-    private fun getPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, useBestBall: Boolean = false) =
+    private fun getPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, scoreFunction: (TeamScores) -> Double) =
         getProperMatchups(matchups, includePlayoffs)
             .filter { matchup -> matchup.year != ESPNConfig.currentYear }
             .groupBy { it.year }
@@ -446,14 +457,10 @@ object ESPNRecordBookCalculator {
                 matchups
                     .flatMap { matchup -> listOf(matchup.homeTeamId to matchup.homeScores) + listOf(matchup.awayTeamId to matchup.awayScores) }
                     .groupBy { (teamId, _) -> teamId }
-                    .mapValues { (_, teamScores) ->
-                        teamScores.sumOf { (_, scores) ->
-                            (if (useBestBall) scores.bestBallScore else null) ?: scores.standardScore
-                        }
-                    }
+                    .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scoreFunction(scores) } }
             }
 
-    private fun getPointsAllowedInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, scoreFunction: (TeamScores) -> Double = standardScoreFunc) =
+    private fun getPointsAllowedInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, scoreFunction: (TeamScores) -> Double) =
         getProperMatchups(matchups, includePlayoffs)
             .filter { matchup -> matchup.year != ESPNConfig.currentYear }
             .groupBy { it.year }
@@ -501,6 +508,7 @@ object ESPNRecordBookCalculator {
 
     private val standardScoreFunc: (TeamScores) -> Double = { scores -> scores.standardScore }
     private val bestBallScoreFunc: (TeamScores) -> Double = { scores -> scores.bestBallScore ?: scores.standardScore }
+    private val bestBallGapFunc: (TeamScores) -> Double = { scores -> scores.getBestBallGap() }
 
     private fun List<Matchup>.afterIncrease() = this.filter { it.year >= ESPNConfig.modernStartYear }
 }
