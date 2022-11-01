@@ -146,19 +146,19 @@ object ESPNRecordBookCalculator {
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
-    ) =        getPointsInSeason(matchups, includePlayoffs, scoreFunction)
-            .filter { (year, _) -> year != ESPNConfig.currentYear }
-            .flatMap { (year, teamScores) ->
-                teamScores.map { (teamId, score) ->
-                    RecordBookEntry(
-                        score,
-                        mapOf(teamId to score),
-                        year,
-                    )
-                }
+    ) = getPointsInSeason(matchups, includePlayoffs, scoreFunction)
+        .filter { (year, _) -> year != ESPNConfig.currentYear }
+        .flatMap { (year, teamScores) ->
+            teamScores.map { (teamId, score) ->
+                RecordBookEntry(
+                    score,
+                    mapOf(teamId to score),
+                    year,
+                )
             }
-            .sortedBy { it.value }
-            .take(itemsToInclude)
+        }
+        .sortedBy { it.value }
+        .take(itemsToInclude)
 
     private fun getMostPointsPerWeek(
         matchups: List<Matchup>,
@@ -367,16 +367,31 @@ object ESPNRecordBookCalculator {
                     if (streakItem.teamWon) {
                         streaks.copy(
                             current = streaks.current + 1,
-                            currentYear = if (streaks.currentYear == 0) streakItem.startYear else streaks.currentYear
+                            startWeek = if (streaks.startWeek == 0) streakItem.week else streaks.startWeek,
+                            startYear = if (streaks.startWeek == 0) streakItem.year else streaks.startYear,
+                            currentWeek = streakItem.week,
+                            currentYear = streakItem.year,
                         )
                     } else {
                         val currentStreak = streaks.streaks + if (streaks.current == 0) {
                             emptyList()
                         } else {
-                            listOf(Streak(teamId, streaks.currentYear, streaks.current))
+                            listOf(
+                                Streak(
+                                    teamId = teamId,
+                                    startWeek = streaks.startWeek,
+                                    startYear = streaks.startYear,
+                                    endWeek = streaks.currentWeek,
+                                    endYear = streaks.currentYear,
+                                    length = streaks.current
+                                )
+                            )
                         }
                         streaks.copy(
                             current = 0,
+                            startWeek = 0,
+                            startYear = 0,
+                            currentWeek = 0,
                             currentYear = 0,
                             streaks = currentStreak
                         )
@@ -384,19 +399,29 @@ object ESPNRecordBookCalculator {
                 }
                 .let { streaks ->
                     if (streaks.current > 0) streaks.copy(
-                        streaks = streaks.streaks + Streak(teamId, streaks.currentYear, streaks.current)
+                        streaks = streaks.streaks + Streak(
+                            teamId = teamId,
+                            startWeek = streaks.currentWeek,
+                            startYear = streaks.currentYear,
+                            endWeek = streaks.currentWeek,
+                            endYear = streaks.currentYear,
+                            length = streaks.current
+                        )
                     ) else streaks
                 }
         }
         .values
         .flatMap { it.streaks }
-        .sortedWith(compareBy({ -it.length }, { it.startYear }))
+        .sortedWith(compareBy({ -it.length }, { it.startYear }, { it.startWeek }))
         .take(itemsToInclude)
-        .map { (teamId, year, streak) ->
+        .map { streak ->
             RecordBookEntry(
-                streak.toDouble(),
-                mapOf(teamId to streak.toDouble()),
-                season = year,
+                streak.length.toDouble(),
+                mapOf(streak.teamId to streak.length.toDouble()),
+                season = streak.startYear,
+                week = streak.startWeek,
+                endSeason = streak.endYear,
+                endWeek = streak.endWeek,
                 intValue = true,
             )
         }
@@ -407,8 +432,8 @@ object ESPNRecordBookCalculator {
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) = getLongestStreak(matchups, includePlayoffs, scoreFunction) { matchup, homeTeamWon ->
         listOf(
-            matchup.homeTeamId to StreakItem(matchup.year, homeTeamWon),
-            matchup.awayTeamId to StreakItem(matchup.year, !homeTeamWon),
+            matchup.homeTeamId to StreakItem(matchup.week, matchup.year, homeTeamWon),
+            matchup.awayTeamId to StreakItem(matchup.week, matchup.year, !homeTeamWon),
         )
     }
 
@@ -418,8 +443,8 @@ object ESPNRecordBookCalculator {
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) = getLongestStreak(matchups, includePlayoffs, scoreFunction) { matchup, homeTeamWon ->
         listOf(
-            matchup.homeTeamId to StreakItem(matchup.year, !homeTeamWon),
-            matchup.awayTeamId to StreakItem(matchup.year, homeTeamWon),
+            matchup.homeTeamId to StreakItem(matchup.week, matchup.year, !homeTeamWon),
+            matchup.awayTeamId to StreakItem(matchup.week, matchup.year, homeTeamWon),
         )
     }
 

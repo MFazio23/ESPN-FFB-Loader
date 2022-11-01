@@ -1,6 +1,7 @@
 package dev.mfazio.espnffb.types
 
 data class StreakItem(
-    val startYear: Int,
+    val week: Int,
+    val year: Int,
     val teamWon: Boolean,
 )
