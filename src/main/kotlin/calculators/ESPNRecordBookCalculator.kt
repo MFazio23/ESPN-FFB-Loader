@@ -244,11 +244,13 @@ object ESPNRecordBookCalculator {
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) =
         matchups.sortedBy { abs(scoreFunction(it.homeScores) - scoreFunction(it.awayScores)) }.map { matchup ->
+            val homeEntry = matchup.homeTeamId to scoreFunction(matchup.homeScores)
+            val awayEntry = matchup.awayTeamId to scoreFunction(matchup.awayScores)
             RecordBookEntry(
                 abs(scoreFunction(matchup.homeScores) - scoreFunction(matchup.awayScores)),
                 mapOf(
-                    matchup.homeTeamId to scoreFunction(matchup.homeScores),
-                    matchup.awayTeamId to scoreFunction(matchup.awayScores)
+                    if(homeEntry.second > awayEntry.second) homeEntry else awayEntry,
+                    if(homeEntry.second > awayEntry.second) awayEntry else homeEntry,
                 ),
                 matchup.year,
                 matchup.week,
@@ -259,11 +261,13 @@ object ESPNRecordBookCalculator {
         matchups: List<Matchup>,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) = matchups.sortedByDescending { abs(scoreFunction(it.homeScores) - scoreFunction(it.awayScores)) }.map { matchup ->
+        val homeEntry = matchup.homeTeamId to scoreFunction(matchup.homeScores)
+        val awayEntry = matchup.awayTeamId to scoreFunction(matchup.awayScores)
         RecordBookEntry(
             abs(scoreFunction(matchup.homeScores) - scoreFunction(matchup.awayScores)),
             mapOf(
-                matchup.homeTeamId to scoreFunction(matchup.homeScores),
-                matchup.awayTeamId to scoreFunction(matchup.awayScores)
+                if(homeEntry.second > awayEntry.second) homeEntry else awayEntry,
+                if(homeEntry.second > awayEntry.second) awayEntry else homeEntry,
             ),
             matchup.year,
             matchup.week,
@@ -401,8 +405,8 @@ object ESPNRecordBookCalculator {
                     if (streaks.current > 0) streaks.copy(
                         streaks = streaks.streaks + Streak(
                             teamId = teamId,
-                            startWeek = streaks.currentWeek,
-                            startYear = streaks.currentYear,
+                            startWeek = streaks.startWeek,
+                            startYear = streaks.startYear,
                             endWeek = streaks.currentWeek,
                             endYear = streaks.currentYear,
                             length = streaks.current
@@ -416,8 +420,8 @@ object ESPNRecordBookCalculator {
         .take(itemsToInclude)
         .map { streak ->
             RecordBookEntry(
-                streak.length.toDouble(),
-                mapOf(streak.teamId to streak.length.toDouble()),
+                value = streak.length.toDouble(),
+                recordHolders = mapOf(streak.teamId to streak.length.toDouble()),
                 season = streak.startYear,
                 week = streak.startWeek,
                 endSeason = streak.endYear,
@@ -476,7 +480,7 @@ object ESPNRecordBookCalculator {
 
     private fun getPointsInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, scoreFunction: (TeamScores) -> Double) =
         getProperMatchups(matchups, includePlayoffs)
-            .filter { matchup -> matchup.year != ESPNConfig.currentYear }
+            //.filter { matchup -> matchup.year != ESPNConfig.currentYear }
             .groupBy { it.year }
             .mapValues { (_, matchups) ->
                 matchups
@@ -487,7 +491,7 @@ object ESPNRecordBookCalculator {
 
     private fun getPointsAllowedInSeason(matchups: List<Matchup>, includePlayoffs: Boolean, scoreFunction: (TeamScores) -> Double) =
         getProperMatchups(matchups, includePlayoffs)
-            .filter { matchup -> matchup.year != ESPNConfig.currentYear }
+            //.filter { matchup -> matchup.year != ESPNConfig.currentYear }
             .groupBy { it.year }
             .mapValues { (_, matchups) ->
                 matchups
@@ -495,27 +499,6 @@ object ESPNRecordBookCalculator {
                     .groupBy { (teamId, _) -> teamId }
                     .mapValues { (_, teamScores) -> teamScores.sumOf { (_, scores) -> scoreFunction(scores) } }
             }
-
-    private fun getMostPointsMissed(matchups: List<Matchup>) =
-        matchups
-            .flatMap { matchup ->
-                listOf(
-                    RecordBookEntry(
-                        matchup.homeScores.getBestBallGap(),
-                        mapOf(matchup.homeTeamId to matchup.homeScores.getBestBallGap()),
-                        matchup.year,
-                        matchup.week,
-                    ),
-                    RecordBookEntry(
-                        matchup.awayScores.getBestBallGap(),
-                        mapOf(matchup.awayTeamId to matchup.awayScores.getBestBallGap()),
-                        matchup.year,
-                        matchup.week,
-                    ),
-                )
-            }
-            .sortedByDescending { entry -> entry.value }
-            .take(itemsToInclude)
 
     private fun getProperMatchups(matchups: List<Matchup>, includePlayoffs: Boolean = false): List<Matchup> = matchups
         .groupBy { it.year }
