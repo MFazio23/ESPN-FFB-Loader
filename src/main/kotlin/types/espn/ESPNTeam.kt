@@ -11,6 +11,7 @@ data class ESPNTeam(
     val location: String,
     val logo: String,
     val logoType: String,
+    val name: String? = null,
     val nickname: String,
     val owners: List<String>,
     val playoffSeed: Int,

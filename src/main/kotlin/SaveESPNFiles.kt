@@ -22,6 +22,9 @@ suspend fun main() {
     val members = getMemberListFromScoreboards(scoreboards)
     val teams = getTeamListFromScoreboards(scoreboards)
 
+    ESPNLocalFileHandler.saveTeamYearMap(scoreboards)
+    ESPNLocalFileHandler.saveMemberList(scoreboards)
+
     val matchups = getMatchupsFromScoreboards(scoreboards, teamsMap).filterNotNull()
     ESPNLocalFileHandler.saveMatchups(matchups)
 

@@ -6,3 +6,9 @@ data class TeamScores(
 ) {
     fun getBestBallGap() = (bestBallScore ?: standardScore) - standardScore
 }
+
+val standardScoreFunc: (TeamScores) -> Double = { scores -> scores.standardScore }
+val bestBallScoreFunc: (TeamScores) -> Double = { scores -> scores.bestBallScore ?: scores.standardScore }
+val bestBallGapFunc: (TeamScores) -> Double = { scores -> scores.getBestBallGap() }
+
+typealias MappedTeamScores = List<Pair<Int, TeamScores>>

@@ -8,6 +8,8 @@ data class Matchup(
     val awayTeamId: Int,
     val homeScores: TeamScores,
     val awayScores: TeamScores,
+    val homePlayers: List<Player>? = null,
+    val awayPlayers: List<Player>? = null,
     val playoffTierType: PlayoffTierType? = null,
     val isHomeOriginalWinner: Boolean = true,
 ) {

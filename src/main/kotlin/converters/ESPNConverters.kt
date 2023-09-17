@@ -1,11 +1,14 @@
 package dev.mfazio.espnffb.converters
 
+import dev.mfazio.espnffb.ESPNConfig.excludedMemberIds
+import dev.mfazio.espnffb.ESPNConfig.excludedMemberIdsPerYear
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 
 fun getMatchupsFromScoreboards(
     scoreboards: List<ESPNScoreboard>,
-    teamsMap: Map<Int, List<Team>?>? = null
+    teamsMap: Map<Int, List<Team>?>? = null,
+    includePlayers: Boolean = false,
 ): List<Matchup?> {
     val allTeams = teamsMap ?: getTeamYearMapFromScoreboards(scoreboards)
 
@@ -39,6 +42,8 @@ fun getMatchupsFromScoreboards(
                     standardScore = awayScore,
                     bestBallScore = getBestBallLineup(awayPlayers)?.sumOf { it.points },
                 ),
+                homePlayers = if (includePlayers) homePlayers else null,
+                awayPlayers = if (includePlayers) awayPlayers else null,
                 isHomeOriginalWinner = schedule.winner == "HOME",
                 playoffTierType = PlayoffTierType.fromESPNString(schedule.playoffTierType)
             )
@@ -53,31 +58,28 @@ fun getESPNMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) = scoreb
     .map { member ->
         member.copy(id = member.id.replace("{", "").replace("}", ""))
     }
+    .filter { !excludedMemberIds.contains(it.id) }
 
 fun getMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) =
     getESPNMemberListFromScoreboards(scoreboards).map(Member::fromESPNMember)
 
 fun getTeamYearMapFromScoreboards(scoreboards: List<ESPNScoreboard>): Map<Int, List<Team>> = scoreboards
     .groupBy { it.seasonId }
-    .mapValues { (_, scoreboards) -> getTeamListFromScoreboards(scoreboards) }
+    .mapValues { (seasonId, scoreboards) ->
+        getTeamListFromScoreboards(scoreboards, excludedMemberIdsPerYear[seasonId] ?: emptyList())
+    }
 
-fun getTeamListFromScoreboards(scoreboards: List<ESPNScoreboard>): List<Team> {
+fun getTeamListFromScoreboards(
+    scoreboards: List<ESPNScoreboard>,
+    excludedMemberIds: List<String> = emptyList()
+): List<Team> {
     val members = getESPNMemberListFromScoreboards(scoreboards)
 
     return scoreboards.flatMap {
-        it.teams
-            .map { espnTeam -> Team.fromESPNTeam(espnTeam, members, it.seasonId) }
+        it.teams.map { espnTeam -> Team.fromESPNTeam(espnTeam, members, it.seasonId, excludedMemberIds) }
     }.distinctBy { "${it.id}-${it.year}" }.sortedBy { it.id }
 }
 
-fun getChampionshipGamesFromScoreboards(scoreboards: List<ESPNScoreboard>): List<ESPNScoreboard> =
-    scoreboards
-        .filter { it.scoringPeriodId == 16 }
-        .map { scoreboard ->
-            scoreboard.copy(
-                schedule = scoreboard.schedule.filter { it.matchupPeriodId == 16 && it.playoffTierType == winnersBracketTierType }
-            )
-        }
 
 fun getBestBallLineup(players: List<Player>): List<Player>? {
     if (players.size < 10 ||
@@ -134,6 +136,8 @@ fun getFlexPositions(players: List<Player>): List<Player> {
 }
 
 const val winnersBracketTierType = "WINNERS_BRACKET"
+
+
 /*
 fun getRecordBookFromMatchups(matchups: List<Matchup>): RecordBook {
 

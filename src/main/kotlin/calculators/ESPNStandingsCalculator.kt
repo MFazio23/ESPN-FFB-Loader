@@ -1,5 +1,7 @@
 package dev.mfazio.espnffb.calculators
 
+import dev.mfazio.espnffb.ESPNConfig.excludedMemberIds
+import dev.mfazio.espnffb.ESPNConfig.excludedMemberIdsPerYear
 import dev.mfazio.espnffb.types.*
 
 object ESPNStandingsCalculator {
@@ -10,7 +12,7 @@ object ESPNStandingsCalculator {
         teams: List<Team>,
         teamsMap: Map<Int, List<Team>> = emptyMap()
     ): List<Standings> =
-        members.filter { !Standings.excludedMemberIds.contains(it.id) }.map { member ->
+        members.filter { !excludedMemberIds.contains(it.id) }.map { member ->
             Standings(
                 member = member,
                 seasons = getSeasonsForMember(member, teams),
@@ -24,9 +26,9 @@ object ESPNStandingsCalculator {
             )
         }
 
-    private fun getSeasonsForMember(member: Member, teamList: List<Team>): StandingsIntEntry =
+    fun getSeasonsForMember(member: Member, teamList: List<Team>): StandingsIntEntry =
         teamList
-            .filter { it.owners.contains(member.id) }
+            .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
             .distinctBy { teams -> teams.year }
             .count()
             .let { count ->
@@ -34,13 +36,15 @@ object ESPNStandingsCalculator {
             }
 
 
-    private fun getWinsForMember(
+    fun getWinsForMember(
         matchups: List<Matchup>,
         member: Member,
         teamsMap: Map<Int, List<Team>>
     ): StandingsIntEntry {
 
-        val memberTeams = teamsMap.flatMap { (_, teams) -> teams }.filter { it.owners.contains(member.id) }
+        val memberTeams = teamsMap
+            .flatMap { (_, teams) -> teams }
+            .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
 
         val standardScoringWins = memberTeams.let { teams ->
             matchups
@@ -49,7 +53,7 @@ object ESPNStandingsCalculator {
                         .filter { it.year == matchup.year }
                         .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
                 }
-                .count { matchup ->
+                .filter { matchup ->
                     matchup.didTeamWin(teams.filter { it.year == matchup.year }.map { it.id })
                 }
         }
@@ -67,7 +71,8 @@ object ESPNStandingsCalculator {
                             .mapValues { (_, matchups) ->
                                 matchups
                                     .flatMap {
-                                        listOf(it.awayTeamId to it.awayScores.standardScore) + listOf(it.homeTeamId to it.homeScores.standardScore)
+                                        listOf(it.awayTeamId to it.awayScores.standardScore) +
+                                        listOf(it.homeTeamId to it.homeScores.standardScore)
                                     }
                                     .sortedByDescending { (_, score) -> score }
                                     .chunked(6)
@@ -80,26 +85,29 @@ object ESPNStandingsCalculator {
                 .values.sum()
         }
 
-        return StandingsIntEntry(standardScoring = standardScoringWins, topSixRankings = topSixScoringWins)
+        return StandingsIntEntry(standardScoring = standardScoringWins.size, topSixRankings = topSixScoringWins)
     }
 
     private fun getLossesForMember(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsIntEntry =
-        teamList.filter { it.owners.contains(member.id) }.let { teams ->
-            matchups
-                .filter { matchup ->
-                    teams.filter { it.year == matchup.year }
-                        .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
-                }
-                .count { matchup ->
-                    !matchup.didTeamWin(teams.filter { it.year == matchup.year }.map { it.id })
-                }.toStandingsIntEntry()
-        }
+        teamList
+            .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
+            .let { teams ->
+                matchups
+                    .filter { matchup ->
+                        teams.filter { it.year == matchup.year }
+                            .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
+                    }
+                    .count { matchup ->
+                        !matchup.didTeamWin(teams.filter { it.year == matchup.year }.map { it.id })
+                    }.toStandingsIntEntry()
+            }
 
     private fun getPointsScored(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsDoubleEntry =
         teamList.filter { it.owners.contains(member.id) }.let { teams ->
             matchups
                 .filter { matchup ->
-                    teams.filter { it.year == matchup.year }
+                    teams
+                        .filter { it.year == matchup.year && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
                         .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
                 }
                 .sumOf { matchup ->
@@ -108,48 +116,59 @@ object ESPNStandingsCalculator {
         }
 
     private fun getPointsAgainst(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsDoubleEntry =
-        teamList.filter { it.owners.contains(member.id) }.let { teams ->
-            matchups
-                .filter { matchup ->
-                    teams.filter { it.year == matchup.year }
-                        .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
-                }
-                .sumOf { matchup ->
-                    matchup.getOtherTeamScores(teams.filter { it.year == matchup.year }.map { it.id })?.standardScore
-                        ?: 0.0
-                }.let { points -> StandingsDoubleEntry(standardScoring = points, topSixRankings = points) }
-        }
+        teamList
+            .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
+            .let { teams ->
+                matchups
+                    .filter { matchup ->
+                        teams.filter { it.year == matchup.year }
+                            .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
+                    }
+                    .sumOf { matchup ->
+                        matchup.getOtherTeamScores(teams.filter { it.year == matchup.year }
+                            .map { it.id })?.standardScore
+                            ?: 0.0
+                    }.let { points -> StandingsDoubleEntry(standardScoring = points, topSixRankings = points) }
+            }
 
     private fun getChampionshipCount(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsIntEntry =
-        teamList.filter { it.owners.contains(member.id) }.let { teams ->
-            matchups
-                .groupBy { "${it.year}-${it.week}" }
-                .values
-                .filter { matchups -> matchups.count { it.playoffTierType == PlayoffTierType.WinnersBracket } == 1 }
-                .map { matchups -> matchups.first { it.playoffTierType == PlayoffTierType.WinnersBracket } }
-                .filter { matchup ->
-                    teams
-                        .filter { it.year == matchup.year }
-                        .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
-                }
-                .count { matchup ->
-                    matchup.didTeamWin(teams.filter { it.year == matchup.year }.map { it.id })
-                }.toStandingsIntEntry()
-        }
+        teamList
+            .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
+            .let { teams ->
+                matchups
+                    .groupBy { "${it.year}-${it.week}" }
+                    .values
+                    .filter { matchups -> matchups.count { it.playoffTierType == PlayoffTierType.WinnersBracket } == 1 }
+                    .map { matchups -> matchups.first { it.playoffTierType == PlayoffTierType.WinnersBracket } }
+                    .filter { matchup ->
+                        teams
+                            .filter { it.year == matchup.year }
+                            .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
+                    }
+                    .count { matchup ->
+                        matchup.didTeamWin(teams.filter { it.year == matchup.year }.map { it.id })
+                    }.toStandingsIntEntry()
+            }
 
-    private fun getChampionshipGameAppearances(matchups: List<Matchup>, member: Member, teamList: List<Team>): StandingsIntEntry =
-        teamList.filter { it.owners.contains(member.id) }.let { teams ->
-            matchups
-                .groupBy { "${it.year}-${it.week}" }
-                .values
-                .filter { matchups -> matchups.count { it.playoffTierType == PlayoffTierType.WinnersBracket } == 1 }
-                .map { matchups -> matchups.first { it.playoffTierType == PlayoffTierType.WinnersBracket } }
-                .count { matchup ->
-                    teams
-                        .filter { it.year == matchup.year }
-                        .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
-                }.toStandingsIntEntry()
-        }
+    private fun getChampionshipGameAppearances(
+        matchups: List<Matchup>,
+        member: Member,
+        teamList: List<Team>
+    ): StandingsIntEntry =
+        teamList
+            .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
+            .let { teams ->
+                matchups
+                    .groupBy { "${it.year}-${it.week}" }
+                    .values
+                    .filter { matchups -> matchups.count { it.playoffTierType == PlayoffTierType.WinnersBracket } == 1 }
+                    .map { matchups -> matchups.first { it.playoffTierType == PlayoffTierType.WinnersBracket } }
+                    .count { matchup ->
+                        teams
+                            .filter { it.year == matchup.year }
+                            .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
+                    }.toStandingsIntEntry()
+            }
 
     private fun getPlayoffAppearanceCount(
         matchups: List<Matchup>,
@@ -159,7 +178,9 @@ object ESPNStandingsCalculator {
         matchups
             .groupBy { it.year }
             .count { (year, matchups) ->
-                val team = teamsMap[year]?.firstOrNull { it.owners.contains(member.id) }
+                val team = teamsMap[year]?.firstOrNull {
+                    it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true
+                }
                 matchups
                     .filter { listOf(it.homeTeamId, it.awayTeamId).contains(team?.id) }
                     .any { matchup ->

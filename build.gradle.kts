@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.MFazio23:fazio-utils-jvm:1.0.4")
+    implementation("com.github.MFazio23:fazio-utils-jvm:1.0.7")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
 
