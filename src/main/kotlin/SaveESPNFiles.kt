@@ -4,6 +4,7 @@ import dev.mfazio.espnffb.calculators.ESPNRecordBookCalculator
 import dev.mfazio.espnffb.calculators.ESPNStandingsCalculator
 import dev.mfazio.espnffb.calculators.ESPNTeamRecordsCalculator
 import dev.mfazio.espnffb.converters.*
+import dev.mfazio.espnffb.extensions.toTeamSummaries
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
 import dev.mfazio.espnffb.types.RecordBooks
 
@@ -39,4 +40,7 @@ suspend fun main() {
 
     val memberVsTeamRecords = ESPNTeamRecordsCalculator.getAllMemberRecordsFromMatchups(members, teams, teamsMap, matchups)
     ESPNLocalFileHandler.saveMemberVsTeamRecords(memberVsTeamRecords)
+
+    val franchiseSeasons = ESPNTeamRecordsCalculator.getFranchiseSeasonsFromMatchups(members, teams, matchups)
+    ESPNLocalFileHandler.saveTeamSummaries(franchiseSeasons.toTeamSummaries())
 }

@@ -139,4 +139,29 @@ object ESPNLocalFileHandler {
             moshi.adapter<List<Standings>>(type).toJson(standings)
         )
     }
+
+    fun saveMemberVsTeamRecords(memberRecordMap: Map<Member, Map<Team, TeamRecord>>) {
+        val teamRecordMapType = Types.newParameterizedType(Map::class.java, Integer::class.java, TeamRecord::class.java)
+        val type = Types.newParameterizedType(Map::class.java, String::class.java, teamRecordMapType)
+
+        val outputMemberRecordMap = memberRecordMap
+            .mapKeys { (member, _) -> member.id }
+            .mapValues { (_, teamRecordMap) -> teamRecordMap.mapKeys { (team, _) -> team.id } }
+
+        val adapter = Moshi.Builder().build().adapter<Map<String, Map<Int, TeamRecord>>>(type)
+
+        File("$dataFolderPath/member-vs-team-records.json").writeText(
+            adapter.toJson(outputMemberRecordMap)
+        )
+    }
+
+    fun saveTeamSummaries(teamSummaries: List<TeamSummary>) {
+        val teamSeasonListType = Types.newParameterizedType(List::class.java, TeamSummary::class.java)
+
+        val adapter = Moshi.Builder().build().adapter<List<TeamSummary>>(teamSeasonListType)
+
+        File("$dataFolderPath/team-summaries.json").writeText(
+            adapter.toJson(teamSummaries)
+        )
+    }
 }
