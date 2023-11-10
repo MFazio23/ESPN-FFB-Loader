@@ -12,7 +12,7 @@ data class RecordBookEntry(
     companion object {
         fun getDefault() = RecordBookEntry(
             value = -1.0,
-            recordHolders = mapOf(),
+            recordHolders = emptyMap(),
             season = -1
         )
     }
