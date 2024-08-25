@@ -13,7 +13,6 @@ data class MemberSeason(
 ) : Season {
     override val id: String
         get() = member.id
-    //TODO: Change this.
     override val eraId: String
         get() = "${member.id}-${team.fullName}-${coOwners}"
     override val title: String

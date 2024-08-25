@@ -39,12 +39,14 @@ object ESPNStandingsCalculator {
     fun getWinsForTeam(team: Team, matchups: List<Matchup>, season: Int? = null): StandingsIntEntry =
         matchups
             .filter { season == null || it.year == season }
+            .filter { matchup -> matchup.awayScores.standardScore != 0.0 || matchup.homeScores.standardScore != 0.0 }
             .count { matchup -> matchup.didTeamWin(team.id) }
             .toStandingsIntEntry()
 
     fun getLossesForTeam(team: Team, matchups: List<Matchup>, season: Int? = null): StandingsIntEntry =
         matchups
             .filter { season == null || it.year == season }
+            .filter { matchup -> matchup.awayScores.standardScore != 0.0 || matchup.homeScores.standardScore != 0.0 }
             .count { matchup -> matchup.includesTeam(team.id) && !matchup.didTeamWin(team.id) }
             .toStandingsIntEntry()
 
