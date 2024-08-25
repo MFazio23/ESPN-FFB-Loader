@@ -1,52 +1,49 @@
 package dev.mfazio.espnffb.extensions
 
-import dev.mfazio.espnffb.types.Team
-import dev.mfazio.espnffb.types.TeamEra
-import dev.mfazio.espnffb.types.TeamSeason
-import dev.mfazio.espnffb.types.TeamSummary
-import dev.mfazio.utils.extensions.printEach
+import dev.mfazio.espnffb.types.*
 
-fun List<TeamSeason>.getWinLossRecord(): Pair<Int, Int> =
-    this.fold(0 to 0) { (wins, losses), teamSeason ->
-        wins + teamSeason.wins to losses + teamSeason.losses
+fun List<Season>.getWinLossRecord(): Pair<Int, Int> =
+    this.fold(0 to 0) { (wins, losses), season ->
+        wins + season.wins to losses + season.losses
     }
 
-fun Map<Team, List<TeamSeason>>.toTeamSummaries(): List<TeamSummary> =
-    this.entries.map { (team, seasons) ->
-        val (wins, losses) = seasons.getWinLossRecord()
-        TeamSummary(
-            teamId = team.id,
-            teamName = team.fullName,
-            wins = wins,
-            losses = losses,
-            championships = seasons.count { it.isChampion },
-            eras = seasons.toTeamEras()
-        )
-    }
+fun List<Season>.toTeamMemberSummaries(id: String, name: String): TeamMemberSummary {
+    val (wins, losses) = this.getWinLossRecord()
+    return TeamMemberSummary(
+        id = id,
+        name = name,
+        wins = wins,
+        losses = losses,
+        championships = this.count { it.isChampion },
+        eras = this.toEras(),
+    )
+}
 
-fun List<TeamSeason>.toTeamEras(): List<TeamEra> {
-    val eras = mutableListOf<TeamEra>()
+fun List<Season>.toEras(): List<Era> {
+    val eras = mutableListOf<Era>()
 
     val (firstSeason, otherSeasons) = this.sortedBy { it.year }.let {
         it.first() to it.drop(1)
     }
 
-    var currentEra = TeamEra(
-        teamName = firstSeason.team.fullName,
+    var currentEra = Era(
+        id = firstSeason.eraId,
+        title = firstSeason.title,
+        subtitle = firstSeason.subtitle,
         startYear = firstSeason.year,
-        endYear = firstSeason.year,
-        owners = firstSeason.owners.map { it.fullName }
+        endYear = firstSeason.year
     )
 
     otherSeasons.forEach { season ->
         currentEra =
-            if (currentEra.teamName != season.team.fullName || currentEra.owners != season.owners.map { it.fullName }) {
+            if (season.eraId != currentEra.id) {
                 eras.add(currentEra)
-                TeamEra(
-                    teamName = season.team.fullName,
+                Era(
+                    id = season.eraId,
+                    title = season.title,
+                    subtitle = season.subtitle,
                     startYear = season.year,
-                    endYear = season.year,
-                    owners = season.owners.map { it.fullName }
+                    endYear = season.year
                 )
             } else {
                 currentEra.copy(

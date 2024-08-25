@@ -35,7 +35,7 @@ object ESPNLocalFileHandler {
 
         (startYear..endYear).forEach { year ->
             (startWeek..endWeek).forEach { week ->
-                val jsonResult = loadJsonResultForWeek(year, week, year >= 2019)
+                val jsonResult = loadJsonResultForWeek(year, week, year >= ESPNConfig.modernStartYear)
 
                 saveJsonResultForWeek(year, week, jsonResult)
 
@@ -155,13 +155,23 @@ object ESPNLocalFileHandler {
         )
     }
 
-    fun saveTeamSummaries(teamSummaries: List<TeamSummary>) {
-        val teamSeasonListType = Types.newParameterizedType(List::class.java, TeamSummary::class.java)
+    fun saveTeamSummaries(teamSummaries: List<TeamMemberSummary>) {
+        val teamSeasonListType = Types.newParameterizedType(List::class.java, TeamMemberSummary::class.java)
 
-        val adapter = Moshi.Builder().build().adapter<List<TeamSummary>>(teamSeasonListType)
+        val adapter = Moshi.Builder().build().adapter<List<TeamMemberSummary>>(teamSeasonListType)
 
         File("$dataFolderPath/team-summaries.json").writeText(
             adapter.toJson(teamSummaries)
+        )
+    }
+
+    fun saveOwnerSummaries(ownerSummaries: List<TeamMemberSummary>) {
+        val teamSeasonListType = Types.newParameterizedType(List::class.java, TeamMemberSummary::class.java)
+
+        val adapter = Moshi.Builder().build().adapter<List<TeamMemberSummary>>(teamSeasonListType)
+
+        File("$dataFolderPath/owner-summaries.json").writeText(
+            adapter.toJson(ownerSummaries)
         )
     }
 }

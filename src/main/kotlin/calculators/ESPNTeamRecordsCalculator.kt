@@ -69,6 +69,28 @@ object ESPNTeamRecordsCalculator {
             }
         }
 
+    fun getOwnerSeasonsFromMatchups(
+        members: List<Member>,
+        teamList: List<Team>,
+        matchups: List<Matchup>,
+    ): Map<Member, List<MemberSeason>> = members.associateWith { member ->
+        teamList.filter { team -> team.owners.contains(member.id) }
+            .map { team ->
+                val coOwners = team.owners
+                    .filter { ownerId -> ownerId != member.id }
+                    .map { ownerId -> members.firstOrNull { it.id == ownerId } }
+                MemberSeason(
+                    member = member,
+                    year = team.year,
+                    team = team,
+                    wins = ESPNStandingsCalculator.getWinsForTeam(team, matchups, team.year).standardScoring,
+                    losses = ESPNStandingsCalculator.getLossesForTeam(team, matchups, team.year).standardScoring,
+                    isChampion = ESPNStandingsCalculator.isChampionInYear(team.year, team.id, matchups),
+                    coOwners = coOwners.mapNotNull { it?.fullName }.joinToString(", ")
+                )
+            }
+    }
+
     private fun getPointsFromMatchups(
         member: Member,
         teamMap: Map<Int, List<Team>>,

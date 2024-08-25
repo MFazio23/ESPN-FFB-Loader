@@ -13,13 +13,13 @@ object ESPNConfig {
         else -> baseFileDirectoryPC
     }
 
-    const val baseURL = "https://fantasy.espn.com/apis/v3/games/ffl/"
+    const val baseURL = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/"
     const val leagueID = "358793"
     const val historicalStartYear = 2009
     const val historicalEndYear = 2018
     const val modernStartYear = 2019
-    const val modernEndYear = 2023
-    const val currentYear = 2023
+    const val modernEndYear = 2024
+    const val currentYear = 2024
     const val startWeek = 1
     const val endWeek = 17
 

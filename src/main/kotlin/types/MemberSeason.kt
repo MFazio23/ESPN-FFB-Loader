@@ -1,19 +1,23 @@
 package dev.mfazio.espnffb.types
 
-data class TeamSeason(
+import dev.mfazio.utils.extensions.isNotNullOrEmpty
+
+data class MemberSeason(
+    val member: Member,
     override val year: Int,
     val team: Team,
-    val owners: List<Member>,
     override val wins: Int,
     override val losses: Int,
     override val isChampion: Boolean = false,
+    val coOwners: String? = null,
 ) : Season {
     override val id: String
-        get() = team.id.toString()
+        get() = member.id
+    //TODO: Change this.
     override val eraId: String
-        get() = (listOf(team.fullName) + owners.map { it.fullName }).joinToString("-")
+        get() = "${member.id}-${team.fullName}-${coOwners}"
     override val title: String
         get() = team.fullName
     override val subtitle: String?
-        get() = owners.joinToString(", ") { it.fullName }
+        get() = if (coOwners.isNotNullOrEmpty()) "w/ $coOwners" else null
 }

@@ -4,6 +4,8 @@ import dev.mfazio.espnffb.ESPNConfig.excludedMemberIds
 import dev.mfazio.espnffb.ESPNConfig.excludedMemberIdsPerYear
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
+import dev.mfazio.utils.extensions.getOrZero
+import dev.mfazio.utils.extensions.orZero
 
 fun getMatchupsFromScoreboards(
     scoreboards: List<ESPNScoreboard>,
@@ -25,8 +27,8 @@ fun getMatchupsFromScoreboards(
             val homePlayers = homeRoster.map { Player.fromESPNEntry(it) }
             val awayPlayers = awayRoster.map { Player.fromESPNEntry(it) }
 
-            val homeScore = schedule.home.pointsByScoringPeriod[schedule.matchupPeriodId.toString()] ?: 0.0
-            val awayScore = schedule.away.pointsByScoringPeriod[schedule.matchupPeriodId.toString()] ?: 0.0
+            val homeScore = schedule.home.pointsByScoringPeriod?.getOrZero(schedule.matchupPeriodId.toString())
+            val awayScore = schedule.away.pointsByScoringPeriod?.getOrZero(schedule.matchupPeriodId.toString())
 
             Matchup(
                 id = schedule.id,
@@ -35,11 +37,11 @@ fun getMatchupsFromScoreboards(
                 homeTeamId = homeTeam.id,
                 awayTeamId = awayTeam.id,
                 homeScores = TeamScores(
-                    standardScore = homeScore,
+                    standardScore = homeScore.orZero(),
                     bestBallScore = getBestBallLineup(homePlayers)?.sumOf { it.points },
                 ),
                 awayScores = TeamScores(
-                    standardScore = awayScore,
+                    standardScore = awayScore.orZero(),
                     bestBallScore = getBestBallLineup(awayPlayers)?.sumOf { it.points },
                 ),
                 homePlayers = if (includePlayers) homePlayers else null,
