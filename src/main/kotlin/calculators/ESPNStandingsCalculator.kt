@@ -35,7 +35,6 @@ object ESPNStandingsCalculator {
                 StandingsIntEntry(count, topSixRankings = count)
             }
 
-
     fun getWinsForTeam(team: Team, matchups: List<Matchup>, season: Int? = null): StandingsIntEntry =
         matchups
             .filter { season == null || it.year == season }

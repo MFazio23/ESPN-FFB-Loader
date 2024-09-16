@@ -1,5 +1,7 @@
 package dev.mfazio.espnffb.types
 
+import kotlin.math.absoluteValue
+
 data class Matchup(
     val id: Int,
     val year: Int,
@@ -29,5 +31,19 @@ data class Matchup(
         !teamIds.contains(homeTeamId) && !teamIds.contains(awayTeamId) -> null
         teamIds.contains(awayTeamId) -> homeScores
         else -> awayScores
+    }
+
+    fun isClose(threshold: Int = 10): Boolean {
+        val homeScore = homeScores.standardScore
+        val awayScore = awayScores.standardScore
+
+        return (homeScore - awayScore).absoluteValue <= threshold
+    }
+
+    fun isLowScoring(threshold: Int = 115): Boolean {
+        val homeScore = homeScores.standardScore
+        val awayScore = awayScores.standardScore
+
+        return homeScore <= threshold && awayScore <= threshold
     }
 }
