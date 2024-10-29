@@ -58,58 +58,61 @@ object ESPNRecordBookCalculator {
     fun getCurrentYearRecordBook(allMatchups: List<Matchup>): RecordBook =
         getRecordBookFromMatchups(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false)
 
-    fun getBestBallRecordBook(allMatchups: List<Matchup>): RecordBook =
+    fun getBestBallRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true): RecordBook =
         allMatchups.afterIncrease().let { matchups ->
             RecordBook(
                 mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsGameInPlayoffs = getMostPointsInGame(matchups, onlyPlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsSeason = getMostPointsInSeason(matchups, scoreFunction = bestBallScoreFunc),
                 mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                mostPointsPerWeek = getMostPointsPerWeek(matchups, scoreFunction = bestBallScoreFunc),
-                mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                mostPointsPerWeek = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsMatchup = getMostPointsInMatchup(matchups, bestBallScoreFunc),
                 fewestPointsGame = getFewestPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 fewestPointsGameInPlayoffs = getFewestPointsInGame(matchups, onlyPlayoffs = true, scoreFunction = bestBallScoreFunc),
                 fewestPointsSeason = getFewestPointsInSeason(matchups, scoreFunction = bestBallScoreFunc),
                 fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                fewestPointsPerWeek = getFewestPointsPerWeek(matchups, scoreFunction = bestBallScoreFunc),
-                fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                fewestPointsPerWeek = getFewestPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 fewestPointsMatchup = getFewestPointsInMatchup(matchups, bestBallScoreFunc),
                 smallestMarginOfVictory = getSmallestMarginOfVictory(matchups, bestBallScoreFunc),
                 largestMarginOfVictory = getLargestMarginOfVictory(matchups, bestBallScoreFunc),
                 mostPointsAllowed = getMostPointsAllowed(matchups, scoreFunction = bestBallScoreFunc),
                 mostPointsAllowedWithPlayoffs = getMostPointsAllowed(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                mostPointsAllowedPerWeek = getMostPointsAllowedPerWeek(matchups, scoreFunction = bestBallScoreFunc),
-                mostPointsAllowedPerWeekWithPlayoffs = getMostPointsAllowedPerWeek(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                fewestPointsAllowed = getFewestPointsAllowed(matchups, scoreFunction = bestBallScoreFunc),
-                fewestPointsAllowedWithPlayoffs = getFewestPointsAllowed(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                fewestPointsAllowedPerWeek = getFewestPointsAllowedPerWeek(matchups, scoreFunction = bestBallScoreFunc),
-                fewestPointsAllowedPerWeekWithPlayoffs = getFewestPointsAllowedPerWeek(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                mostPointsAllowedPerWeek = getMostPointsAllowedPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                mostPointsAllowedPerWeekWithPlayoffs = getMostPointsAllowedPerWeek(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                fewestPointsAllowed = getFewestPointsAllowed(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                fewestPointsAllowedWithPlayoffs = getFewestPointsAllowed(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                fewestPointsAllowedPerWeek = getFewestPointsAllowedPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                fewestPointsAllowedPerWeekWithPlayoffs = getFewestPointsAllowedPerWeek(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 longestWinningStreak = getLongestWinningStreak(matchups, scoreFunction = bestBallScoreFunc),
                 longestWinningStreakWithPlayoffs = getLongestWinningStreak(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 longestLosingStreak = getLongestLosingStreak(matchups, scoreFunction = bestBallScoreFunc),
                 longestLosingStreakWithPlayoffs = getLongestLosingStreak(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 lowestWinningScore = getLowestWinningScore(matchups, bestBallScoreFunc),
                 highestLosingScore = getHighestLosingScore(matchups, bestBallScoreFunc),
-                highestPointsPlus = getHighestPointsPlus(matchups, scoreFunction = bestBallScoreFunc),
-                highestPointsPlusWithPlayoffs = getHighestPointsPlus(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                highestPointsPlus = getHighestPointsPlus(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                highestPointsPlusWithPlayoffs = getHighestPointsPlus(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 lowestPointsPlus = getLowestPointsPlus(matchups, scoreFunction = bestBallScoreFunc),
-                lowestPointsPlusWithPlayoffs = getLowestPointsPlus(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                highestPointsAllowedPlus = getMostPointsAllowedPlus(matchups, scoreFunction = bestBallScoreFunc),
-                highestPointsAllowedPlusWithPlayoffs = getMostPointsAllowedPlus(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                lowestPointsAllowedPlus = getFewestPointsAllowedPlus(matchups, scoreFunction = bestBallScoreFunc),
-                lowestPointsAllowedPlusWithPlayoffs = getFewestPointsAllowedPlus(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                lowestPointsPlusWithPlayoffs = getLowestPointsPlus(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                highestPointsAllowedPlus = getMostPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                highestPointsAllowedPlusWithPlayoffs = getMostPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
+                lowestPointsAllowedPlus = getFewestPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
+                lowestPointsAllowedPlusWithPlayoffs = getFewestPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsMissed = getMostPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallGapFunc),
-                mostPointsMissedInSeason = getMostPointsInSeason(matchups, scoreFunction = bestBallGapFunc),
-                mostPointsMissedInSeasonWithPlayoffs = getMostPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallGapFunc),
-                highestPointsPlayedPctInSeason = getHighestPointsPlayedPctInSeason(matchups),
-                highestPointsPlayedPctInSeasonWithPlayoffs = getHighestPointsPlayedPctInSeason(matchups, includePlayoffs = true),
-                fewestPointsMissedInSeason = getFewestPointsInSeason(matchups, scoreFunction = bestBallGapFunc),
-                fewestPointsMissedInSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallGapFunc),
-                lowestPointsPlayedPctInSeason = getLowestPointsPlayedPctInSeason(matchups),
-                lowestPointsPlayedPctInSeasonWithPlayoffs = getLowestPointsPlayedPctInSeason(matchups, includePlayoffs = true),
+                mostPointsMissedInSeason = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallGapFunc),
+                mostPointsMissedInSeasonWithPlayoffs = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallGapFunc),
+                highestPointsPlayedPctInSeason = getHighestPointsPlayedPctInSeason(matchups, skipCurrentYear = skipCurrentYear,),
+                highestPointsPlayedPctInSeasonWithPlayoffs = getHighestPointsPlayedPctInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true),
+                fewestPointsMissedInSeason = getFewestPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallGapFunc),
+                fewestPointsMissedInSeasonWithPlayoffs = getFewestPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallGapFunc),
+                lowestPointsPlayedPctInSeason = getLowestPointsPlayedPctInSeason(matchups, skipCurrentYear = skipCurrentYear,),
+                lowestPointsPlayedPctInSeasonWithPlayoffs = getLowestPointsPlayedPctInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true),
             )
         }
+
+    fun getCurrentYearBestBallRecordBook(allMatchups: List<Matchup>): RecordBook =
+        getBestBallRecordBook(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false)
 
     fun getMostPointsInGame(
         matchups: List<Matchup>,
@@ -657,15 +660,17 @@ object ESPNRecordBookCalculator {
 
     private fun getHighestPointsPlayedPctInSeason(
         matchups: List<Matchup>,
-        includePlayoffs: Boolean = false
+        includePlayoffs: Boolean = false,
+        skipCurrentYear: Boolean = true
     ): List<RecordBookEntry> =
-        getPointsPlayedPctInSeason(matchups, includePlayoffs).sortedByDescending { it.value }.take(ITEMS_TO_INCLUDE)
+        getPointsPlayedPctInSeason(matchups, skipCurrentYear, includePlayoffs).sortedByDescending { it.value }.take(ITEMS_TO_INCLUDE)
 
     private fun getLowestPointsPlayedPctInSeason(
         matchups: List<Matchup>,
-        includePlayoffs: Boolean = false
+        includePlayoffs: Boolean = false,
+        skipCurrentYear: Boolean = true
     ): List<RecordBookEntry> =
-        getPointsPlayedPctInSeason(matchups, includePlayoffs).sortedBy { it.value }.take(ITEMS_TO_INCLUDE)
+        getPointsPlayedPctInSeason(matchups, skipCurrentYear, includePlayoffs).sortedBy { it.value }.take(ITEMS_TO_INCLUDE)
 
     private fun getProperMatchups(
         matchups: List<Matchup>,

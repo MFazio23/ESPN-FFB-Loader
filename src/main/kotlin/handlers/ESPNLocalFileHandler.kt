@@ -140,6 +140,14 @@ object ESPNLocalFileHandler {
         )
     }
 
+    fun saveModernStandings(standings: List<Standings>) {
+        val type = Types.newParameterizedType(List::class.java, Standings::class.java)
+
+        File("$dataFolderPath/modern-standings.json").writeText(
+            moshi.adapter<List<Standings>>(type).toJson(standings)
+        )
+    }
+
     fun saveMemberVsTeamRecords(memberRecordMap: Map<Member, Map<Team, TeamRecord>>) {
         val teamRecordMapType = Types.newParameterizedType(Map::class.java, Integer::class.java, TeamRecord::class.java)
         val type = Types.newParameterizedType(Map::class.java, String::class.java, teamRecordMapType)

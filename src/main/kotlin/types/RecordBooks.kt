@@ -5,4 +5,5 @@ data class RecordBooks(
     val modern: RecordBook,
     val bestBall: RecordBook,
     val currentYear: RecordBook,
+    val currentYearBestBall: RecordBook,
 )

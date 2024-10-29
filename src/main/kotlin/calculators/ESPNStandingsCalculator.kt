@@ -11,11 +11,16 @@ object ESPNStandingsCalculator {
         members: List<Member>,
         teams: List<Team>,
         teamsMap: Map<Int, List<Team>> = emptyMap()
-    ): List<Standings> =
-        members.filter { !excludedMemberIds.contains(it.id) }.map { member ->
+    ): List<Standings> {
+        val (startYear, endYear) = matchups.minOf { it.year } to matchups.maxOf { it.year }
+        val validTeams = teams.filter { it.year in startYear..endYear }
+
+        return members
+            .filter { member -> validTeams.any { it.owners.contains(member.id) } }
+            .filter { !excludedMemberIds.contains(it.id) }.map { member ->
             Standings(
                 member = member,
-                seasons = getSeasonsForMember(member, teams),
+                seasons = getSeasonsForMember(member, teams, startYear, endYear),
                 wins = getWinsForMember(matchups, member, teamsMap),
                 losses = getLossesForMember(matchups, member, teams),
                 pointsScored = getPointsScored(matchups, member, teams),
@@ -25,10 +30,12 @@ object ESPNStandingsCalculator {
                 championshipApps = getChampionshipGameAppearances(matchups, member, teams),
             )
         }
+    }
 
-    fun getSeasonsForMember(member: Member, teamList: List<Team>): StandingsIntEntry =
+    fun getSeasonsForMember(member: Member, teamList: List<Team>, startYear: Int, endYear: Int): StandingsIntEntry =
         teamList
             .filter { it.owners.contains(member.id) && excludedMemberIdsPerYear[it.year]?.contains(member.id) != true }
+            .filter { it.year in startYear..endYear }
             .distinctBy { teams -> teams.year }
             .count()
             .let { count ->
@@ -93,7 +100,7 @@ object ESPNStandingsCalculator {
                         matchups
                             .flatMap {
                                 listOf(it.awayTeamId to it.awayScores.standardScore) +
-                                        listOf(it.homeTeamId to it.homeScores.standardScore)
+                                    listOf(it.homeTeamId to it.homeScores.standardScore)
                             }
                             .sortedByDescending { (_, score) -> score }
                             .chunked(6)
