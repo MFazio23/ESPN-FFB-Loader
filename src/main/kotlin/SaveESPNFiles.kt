@@ -3,21 +3,19 @@ package dev.mfazio.espnffb
 import dev.mfazio.espnffb.calculators.ESPNRecordBookCalculator
 import dev.mfazio.espnffb.calculators.ESPNStandingsCalculator
 import dev.mfazio.espnffb.calculators.ESPNTeamRecordsCalculator
-import dev.mfazio.espnffb.converters.getMatchupsFromScoreboards
-import dev.mfazio.espnffb.converters.getMemberListFromScoreboards
-import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
-import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
+import dev.mfazio.espnffb.converters.*
 import dev.mfazio.espnffb.extensions.toTeamMemberSummaries
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
 import dev.mfazio.espnffb.types.RecordBooks
+import dev.mfazio.espnffb.various.VariousFactHandler
 
 suspend fun main() {
 
     ESPNLocalFileHandler.saveRawDataToFiles(
         startYear = 2024,
         endYear = 2024,
-        startWeek = 8,
-        endWeek = 8,
+        startWeek = 12,
+        endWeek = 12,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
@@ -28,10 +26,14 @@ suspend fun main() {
     ESPNLocalFileHandler.saveTeamYearMap(scoreboards)
     ESPNLocalFileHandler.saveMemberList(scoreboards)
 
-    val matchups = getMatchupsFromScoreboards(scoreboards, teamsMap).filterNotNull()
+    val matchups = getMatchupsFromScoreboards(scoreboards, teamsMap, includePlayers = true).filterNotNull()
     ESPNLocalFileHandler.saveMatchups(matchups)
 
+    val (week, year) = getCurrentWeekAndYear(matchups)
+
     val recordBooks = RecordBooks(
+        latestYear = year,
+        latestWeek = week,
         standard = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups),
         modern = ESPNRecordBookCalculator.getModernRecordBook(matchups),
         bestBall = ESPNRecordBookCalculator.getBestBallRecordBook(matchups),
@@ -63,4 +65,7 @@ suspend fun main() {
     val ownerSummaries =
         ownerSeasons.map { (owner, seasons) -> seasons.toTeamMemberSummaries(owner.id, owner.fullName) }
     ESPNLocalFileHandler.saveOwnerSummaries(ownerSummaries)
+
+    val variousFactCards = VariousFactHandler.generateList(scoreboards, matchups, teamsMap, teams, members)
+    ESPNLocalFileHandler.saveVariousFactCards(variousFactCards)
 }

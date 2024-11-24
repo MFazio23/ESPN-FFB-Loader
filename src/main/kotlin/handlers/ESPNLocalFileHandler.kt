@@ -9,6 +9,7 @@ import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
+import dev.mfazio.espnffb.various.VariousFactCard
 import kotlinx.coroutines.delay
 import java.io.File
 
@@ -180,6 +181,16 @@ object ESPNLocalFileHandler {
 
         File("$dataFolderPath/owner-summaries.json").writeText(
             adapter.toJson(ownerSummaries)
+        )
+    }
+
+    fun saveVariousFactCards(variousFactCards: List<VariousFactCard>) {
+        val type = Types.newParameterizedType(List::class.java, VariousFactCard::class.java)
+
+        val adapter = Moshi.Builder().build().adapter<List<VariousFactCard>>(type)
+
+        File("$dataFolderPath/various-fact-cards.json").writeText(
+            adapter.toJson(variousFactCards)
         )
     }
 }

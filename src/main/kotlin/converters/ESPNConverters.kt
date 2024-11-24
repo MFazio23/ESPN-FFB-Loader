@@ -17,9 +17,9 @@ fun getMatchupsFromScoreboards(
     return scoreboards.flatMap { scoreboard ->
         val teams = allTeams[scoreboard.seasonId] ?: listOf()
 
-        scoreboard.schedule.filter { it.matchupPeriodId == scoreboard.scoringPeriodId }.map { schedule ->
-            val homeTeam = teams.find { team -> team.id == schedule.home.teamId } ?: return@map null
-            val awayTeam = teams.find { team -> team.id == schedule.away.teamId } ?: return@map null
+        scoreboard.schedule.filter { it.matchupPeriodId == scoreboard.scoringPeriodId }.mapNotNull { schedule ->
+            val homeTeam = teams.find { team -> team.id == schedule.home.teamId } ?: return@mapNotNull null
+            val awayTeam = teams.find { team -> team.id == schedule.away.teamId } ?: return@mapNotNull null
 
             val homeRoster = schedule.home.rosterForCurrentScoringPeriod?.entries ?: emptyList()
             val awayRoster = schedule.away.rosterForCurrentScoringPeriod?.entries ?: emptyList()
@@ -30,6 +30,7 @@ fun getMatchupsFromScoreboards(
             val homeScore = schedule.home.pointsByScoringPeriod?.getOrZero(schedule.matchupPeriodId.toString())
             val awayScore = schedule.away.pointsByScoringPeriod?.getOrZero(schedule.matchupPeriodId.toString())
 
+            if (homeScore.orZero() == 0.0 && awayScore.orZero() == 0.0) return@mapNotNull null
             Matchup(
                 id = schedule.id,
                 year = scoreboard.seasonId,
@@ -130,20 +131,20 @@ fun getFlexPositions(players: List<Player>): List<Player> {
 
     val topPlayer = filteredPlayers.maxByOrNull { it.points } ?: return emptyList()
 
-    return listOf(topPlayer) + listOfNotNull(when (topPlayer.position) {
+    val flex = listOf(topPlayer) + listOfNotNull(when (topPlayer.position) {
         Position.RB -> filteredPlayers.filter { it.position != Position.RB }.maxByOrNull { it.points }
         Position.TE -> filteredPlayers.filter { it.position != Position.TE }.maxByOrNull { it.points }
         else -> filteredPlayers.filter { it.id != topPlayer.id }.maxByOrNull { it.points }
     })
+
+    // This makes sure that the RW/WR flex spot is listed first.
+    return if (flex.first().position == Position.TE) flex.reversed() else flex
 }
 
-const val winnersBracketTierType = "WINNERS_BRACKET"
+fun getCurrentWeekAndYear(matchups: List<Matchup>): Pair<Int, Int> {
+    val playedMatchups = matchups.filter { it.homeScores.standardScore > 0.0 && it.awayScores.standardScore > 0.0 }
+    val currentYear = playedMatchups.maxOf { it.year }
+    val currentWeek = playedMatchups.filter { it.year == currentYear }.maxOf { it.week }
 
-
-/*
-fun getRecordBookFromMatchups(matchups: List<Matchup>): RecordBook {
-
-    return RecordBook(
-        matchups.max
-    )
-}*/
+    return currentWeek to currentYear
+}
