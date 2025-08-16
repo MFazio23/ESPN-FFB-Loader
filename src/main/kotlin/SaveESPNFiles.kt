@@ -11,11 +11,11 @@ import dev.mfazio.espnffb.various.VariousFactHandler
 
 suspend fun main() {
 
-    ESPNLocalFileHandler.saveRawDataToFiles(
+    ESPNLocalFileHandler.saveRawWeeklyDataToFiles(
         startYear = 2024,
         endYear = 2024,
-        startWeek = 12,
-        endWeek = 12,
+        startWeek = 17,
+        endWeek = 17,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
@@ -29,16 +29,19 @@ suspend fun main() {
     val matchups = getMatchupsFromScoreboards(scoreboards, teamsMap, includePlayers = true).filterNotNull()
     ESPNLocalFileHandler.saveMatchups(matchups)
 
-    val (week, year) = getCurrentWeekAndYear(matchups)
+    val (currentWeek, currentYear) = getCurrentWeekAndYear(matchups)
+
+    val skipCurrentYear = currentWeek < 14
+    val excludeDeadSlotTeams = true
 
     val recordBooks = RecordBooks(
-        latestYear = year,
-        latestWeek = week,
-        standard = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups),
-        modern = ESPNRecordBookCalculator.getModernRecordBook(matchups),
-        bestBall = ESPNRecordBookCalculator.getBestBallRecordBook(matchups),
-        currentYear = ESPNRecordBookCalculator.getCurrentYearRecordBook(matchups),
-        currentYearBestBall = ESPNRecordBookCalculator.getCurrentYearBestBallRecordBook(matchups),
+        latestYear = currentYear,
+        latestWeek = currentWeek,
+        standard = ESPNRecordBookCalculator.getRecordBookFromMatchups(matchups, skipCurrentYear = skipCurrentYear, excludeDeadSlotTeams = excludeDeadSlotTeams),
+        modern = ESPNRecordBookCalculator.getModernRecordBook(matchups, skipCurrentYear = skipCurrentYear, excludeDeadSlotTeams = excludeDeadSlotTeams),
+        bestBall = ESPNRecordBookCalculator.getBestBallRecordBook(matchups, skipCurrentYear = skipCurrentYear, excludeDeadSlotTeams = excludeDeadSlotTeams),
+        currentYear = ESPNRecordBookCalculator.getCurrentYearRecordBook(matchups, excludeDeadSlotTeams = excludeDeadSlotTeams),
+        currentYearBestBall = ESPNRecordBookCalculator.getCurrentYearBestBallRecordBook(matchups, excludeDeadSlotTeams = excludeDeadSlotTeams),
     )
     ESPNLocalFileHandler.saveRecordBooks(recordBooks)
 

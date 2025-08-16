@@ -14,6 +14,20 @@ data class Team(
 ) {
     val fullName = name ?: "$location $nickname"
 
+    override fun equals(other: Any?): Boolean = other is Team && other.id == id
+
+    override fun hashCode(): Int {
+        var result = id
+        result = 31 * result + year
+        result = 31 * result + owners.hashCode()
+        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + (location?.hashCode() ?: 0)
+        result = 31 * result + (nickname?.hashCode() ?: 0)
+        result = 31 * result + shortName.hashCode()
+        result = 31 * result + fullName.hashCode()
+        return result
+    }
+
     companion object {
         fun fromESPNTeam(
             team: ESPNTeam,

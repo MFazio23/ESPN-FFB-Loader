@@ -33,4 +33,7 @@ object ESPNServiceHandler {
 
     suspend fun getModernData(year: Int, week: Int): ESPNScoreboard =
         espnService.getModernESPNWeek(year, week)
+
+    suspend fun getRosterData(year: Int): ESPNScoreboard =
+        espnService.getESPNRoster(year)
 }

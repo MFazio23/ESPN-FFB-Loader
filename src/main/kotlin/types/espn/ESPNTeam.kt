@@ -22,6 +22,7 @@ data class ESPNTeam(
     val rankCalculatedFinal: Int,
     val rankFinal: Int,
     val record: ESPNRecord,
+    val roster: ESPNRosterForMatchupPeriod? = null,
     val tradeBlock: ESPNTradeBlock,
     val transactionCounter: ESPNTransactionCounter,
     val valuesByStat: Any,

@@ -1,5 +1,6 @@
 package dev.mfazio.espnffb.types
 
+import dev.mfazio.utils.extensions.orZero
 import kotlin.math.absoluteValue
 
 data class Matchup(
@@ -48,4 +49,9 @@ data class Matchup(
 
         return homeScore <= threshold && awayScore <= threshold
     }
+
+    fun hasDeadSlotTeam() =
+        homePlayers?.any { it.lineupSlot.isStarter() && it.projectedPoints.orZero() == 0.0 } == true ||
+        awayPlayers?.any { it.lineupSlot.isStarter() && it.projectedPoints.orZero() == 0.0 } == true
+
 }

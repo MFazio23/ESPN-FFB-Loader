@@ -10,6 +10,6 @@ enum class Position(val id: Int) {
     NA(-1);
 
     companion object {
-        fun fromESPNId(id: Int) = values().firstOrNull { it.id == id } ?: NA
+        fun fromESPNId(id: Int) = Position.entries.firstOrNull { it.id == id } ?: NA
     }
 }

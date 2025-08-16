@@ -15,4 +15,8 @@ data class ESPNPlayer(
     val proTeamId: Int,
     val stats: List<ESPNStat>,
     val universeId: Int
-)
+) {
+    fun getProTeamName(): String? {
+        return if (proTeamId == 0) "FA" else ESPNProTeam.fromId(proTeamId)?.teamCode
+    }
+}

@@ -23,6 +23,11 @@ object ESPNConfig {
     const val startWeek = 1
     const val endWeek = 17
 
+    fun championshipWeek(year: Int) = when {
+        year < 2021 -> 16
+        else -> 17
+    }
+
     val excludedMemberIds = listOf(
         "047A1C53-72E7-4173-87EB-88EF5E4BAF7B" // Emily
     )

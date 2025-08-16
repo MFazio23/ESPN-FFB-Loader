@@ -15,27 +15,37 @@ interface ESPNService {
     suspend fun getHistoricalESPNWeekJson(
         @Query("seasonId") year: Int,
         @Query("scoringPeriodId") week: Int,
-        @Query("view") views: List<String> = listOf("mMatchupScore", "mScoreboard", "mTeam")
+        @Query("view") views: List<String> = defaultViews
     ): String
 
     @GET("${ESPNConfig.baseURL}seasons/{seasonId}/segments/0/leagues/${ESPNConfig.leagueID}")
     suspend fun getModernESPNWeekJson(
         @Path("seasonId") year: Int,
-        @Query("scoringPeriodId") week: Int,
-        @Query("view") views: List<String> = listOf("mMatchupScore", "mScoreboard", "mTeam")
+        @Query("scoringPeriodId") week: Int?,
+        @Query("view") views: List<String> = defaultViews
     ): String
 
     @GET("${ESPNConfig.baseURL}leagueHistory/${ESPNConfig.leagueID}")
     suspend fun getHistoricalESPNWeek(
         @Query("seasonId") year: Int,
         @Query("scoringPeriodId") week: Int,
-        @Query("view") views: List<String> = listOf("mMatchupScore", "mScoreboard", "mTeam")
+        @Query("view") views: List<String> = defaultViews
     ): List<ESPNScoreboard>
 
     @GET("${ESPNConfig.baseURL}seasons/{seasonId}/segments/0/leagues/${ESPNConfig.leagueID}")
     suspend fun getModernESPNWeek(
         @Path("seasonId") year: Int,
         @Query("scoringPeriodId") week: Int,
-        @Query("view") views: List<String> = listOf("mMatchupScore", "mScoreboard", "mTeam")
+        @Query("view") views: List<String> = defaultViews
     ): ESPNScoreboard
+
+    @GET("${ESPNConfig.baseURL}seasons/{seasonId}/segments/0/leagues/${ESPNConfig.leagueID}")
+    suspend fun getESPNRoster(
+        @Path("seasonId") year: Int,
+        @Query("view") views: List<String> = listOf("mRoster", "mTeam")
+    ): ESPNScoreboard
+
+    companion object {
+        private val defaultViews = listOf("mMatchupScore", "mScoreboard", "mTeam")
+    }
 }

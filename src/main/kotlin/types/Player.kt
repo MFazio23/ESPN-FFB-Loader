@@ -7,6 +7,7 @@ data class Player(
     val name: String,
     val position: Position,
     val points: Double,
+    val projectedPoints: Double? = null,
     val lineupSlot: LineupSlot,
 ) {
     companion object {
@@ -19,6 +20,7 @@ data class Player(
                 name = espnPlayer.fullName,
                 position = Position.fromESPNId(espnPlayer.defaultPositionId),
                 points = ppEntry.appliedStatTotal,
+                projectedPoints = ppEntry.projectedStatTotal,
                 lineupSlot = LineupSlot.fromESPNId(espnEntry.lineupSlotId)
             )
         }

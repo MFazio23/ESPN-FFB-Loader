@@ -3,6 +3,7 @@ package dev.mfazio.espnffb.handlers
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import dev.mfazio.espnffb.ESPNConfig
+import dev.mfazio.espnffb.calculators.getKeeperPrices
 import dev.mfazio.espnffb.converters.getESPNMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
@@ -26,7 +27,7 @@ object ESPNLocalFileHandler {
             }
         }
 
-    suspend fun saveRawDataToFiles(
+    suspend fun saveRawWeeklyDataToFiles(
         startYear: Int = ESPNConfig.historicalStartYear,
         endYear: Int = ESPNConfig.modernEndYear,
         startWeek: Int = ESPNConfig.startWeek,
@@ -65,6 +66,16 @@ object ESPNLocalFileHandler {
             this.createNewFile()
             this.writeText(data)
         }
+    }
+
+    suspend fun saveKeeperPricesForYear(year: Int): List<KeeperEntry> {
+        val rosterData = ESPNServiceHandler.getRosterData(year)
+
+        val keeperPrices = rosterData.getKeeperPrices()
+
+        saveKeeperPrices(year, keeperPrices)
+
+        return keeperPrices
     }
 
     fun saveMemberList(scoreboards: List<ESPNScoreboard>): List<ESPNMember> {
@@ -191,6 +202,16 @@ object ESPNLocalFileHandler {
 
         File("$dataFolderPath/various-fact-cards.json").writeText(
             adapter.toJson(variousFactCards)
+        )
+    }
+
+    fun saveKeeperPrices(year: Int, keeperPrices: List<KeeperEntry>) {
+        val type = Types.newParameterizedType(List::class.java, KeeperEntry::class.java)
+
+        val adapter = Moshi.Builder().build().adapter<List<KeeperEntry>>(type)
+
+        File("$dataFolderPath/keeper-prices-${year}.json").writeText(
+            adapter.toJson(keeperPrices)
         )
     }
 }
