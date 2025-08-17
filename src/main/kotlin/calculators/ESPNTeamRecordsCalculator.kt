@@ -7,7 +7,7 @@ object ESPNTeamRecordsCalculator {
     fun getAllMemberRecordsFromMatchups(
         members: List<Member>,
         teamList: List<Team>,
-        teamMap: Map<Int, List<Team>>,
+        teamMap: TeamYearMap,
         matchups: List<Matchup>
     ): Map<Member, Map<Team, TeamRecord>> = members.associateWith { member ->
         teamList.sortedByDescending { it.year }.distinctBy { it.id }.associateWith { opposingTeam ->
@@ -93,7 +93,7 @@ object ESPNTeamRecordsCalculator {
 
     private fun getPointsFromMatchups(
         member: Member,
-        teamMap: Map<Int, List<Team>>,
+        teamMap: TeamYearMap,
         matchups: List<Matchup>,
         scoreFunction: (TeamScores) -> Double,
     ): Pair<Double, Double> = matchups
@@ -111,7 +111,7 @@ object ESPNTeamRecordsCalculator {
 
     private fun getWinsForMemberAgainstTeam(
         member: Member,
-        teamMap: Map<Int, List<Team>>,
+        teamMap: TeamYearMap,
         matchups: List<Matchup>
     ): Int = matchups.count { matchup ->
         val memberTeam = teamMap[matchup.year]?.find { it.owners.contains(member.id) } ?: return@count false

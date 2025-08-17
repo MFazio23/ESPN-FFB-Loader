@@ -91,12 +91,12 @@ object ESPNLocalFileHandler {
         return members
     }
 
-    fun saveTeamYearMap(scoreboards: List<ESPNScoreboard>): Map<Int, List<Team>> {
+    fun saveTeamYearMap(scoreboards: List<ESPNScoreboard>): TeamYearMap {
         val teams = getTeamYearMapFromScoreboards(scoreboards)
 
         val teamListType = Types.newParameterizedType(List::class.java, Team::class.java)
         val type = Types.newParameterizedType(Map::class.java, Integer::class.java, teamListType)
-        val adapter = Moshi.Builder().build().adapter<Map<Int, List<Team>>>(type)
+        val adapter = Moshi.Builder().build().adapter<TeamYearMap>(type)
 
         File("$dataFolderPath/team-year-map.json").writeText(
             adapter.toJson(teams)

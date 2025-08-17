@@ -5,6 +5,7 @@ import dev.mfazio.espnffb.types.Matchup
 import dev.mfazio.espnffb.types.Member
 import dev.mfazio.espnffb.types.PlayoffTierType
 import dev.mfazio.espnffb.types.Team
+import dev.mfazio.espnffb.types.TeamYearMap
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.espnffb.various.VariousFactCard
 import dev.mfazio.espnffb.various.VariousFactEntry
@@ -17,7 +18,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
     override fun generate(
         scoreboards: List<ESPNScoreboard>,
         matchups: List<Matchup>,
-        teamsMap: Map<Int, List<Team>>,
+        teamsMap: TeamYearMap,
         allTeams: List<Team>,
         members: List<Member>
     ): List<VariousFactCard> {
@@ -53,7 +54,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
         matchups: List<Matchup>,
         members: List<Member>,
         allTeams: List<Team>,
-        teamsMap: Map<Int, List<Team>>,
+        teamsMap: TeamYearMap,
         includePlayoffs: Boolean = false,
     ): Pair<List<WinnerLoser>, List<WinnerLoser>> {
         val luckyWinners = mutableListOf<WinnerLoser>()
@@ -113,7 +114,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
         matchups: List<Matchup>,
         members: List<Member>,
         allTeams: List<Team>,
-        teamsMap: Map<Int, List<Team>>,
+        teamsMap: TeamYearMap,
         includePlayoffs: Boolean = false,
     ) {
         val (luckyWinners, unluckyLosers) = getLuckyWinnersUnluckyLosers(

@@ -1,5 +1,7 @@
 package dev.mfazio.espnffb.types.espn
 
+import dev.mfazio.espnffb.ESPNConfig.mappedMemberIds
+
 data class ESPNTeam(
     val abbrev: String,
     val currentProjectedRank: Int,
@@ -27,4 +29,8 @@ data class ESPNTeam(
     val transactionCounter: ESPNTransactionCounter,
     val valuesByStat: Any,
     val waiverRank: Int
-)
+) {
+    val ownerId = owners.first().let { id ->
+        mappedMemberIds.getOrDefault(id, id)
+    }
+}

@@ -10,22 +10,22 @@ object ESPNRecordBookCalculator {
 
     private const val ITEMS_TO_INCLUDE = 10
 
-    fun getRecordBookFromMatchups(matchups: List<Matchup>, skipCurrentYear: Boolean = true): RecordBook =
+    fun getRecordBookFromMatchups(matchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false): RecordBook =
         RecordBook(
             mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true),
             mostPointsGameInPlayoffs = getMostPointsInGame(matchups, onlyPlayoffs = true),
-            mostPointsSeason = getMostPointsInSeason(matchups),
-            mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, includePlayoffs = true),
+            mostPointsSeason = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear),
+            mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true),
             mostPointsPerWeek = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear),
             mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, includePlayoffs = true, skipCurrentYear = skipCurrentYear),
             mostPointsMatchup = getMostPointsInMatchup(matchups),
-            fewestPointsGame = getFewestPointsInGame(matchups, includePlayoffs = true),
-            fewestPointsGameInPlayoffs = getFewestPointsInGame(matchups, onlyPlayoffs = true),
+            fewestPointsGame = getFewestPointsInGame(matchups, includePlayoffs = true, excludeDeadSlotTeams = excludeDeadSlotTeams),
+            fewestPointsGameInPlayoffs = getFewestPointsInGame(matchups, onlyPlayoffs = true, excludeDeadSlotTeams = excludeDeadSlotTeams),
             fewestPointsSeason = getFewestPointsInSeason(matchups, skipCurrentYear = skipCurrentYear),
-            fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true, skipCurrentYear = skipCurrentYear),
+            fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true),
             fewestPointsPerWeek = getFewestPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear),
             fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, includePlayoffs = true, skipCurrentYear = skipCurrentYear),
-            fewestPointsMatchup = getFewestPointsInMatchup(matchups),
+            fewestPointsMatchup = getFewestPointsInMatchup(matchups, excludeDeadSlotTeams = excludeDeadSlotTeams),
             smallestMarginOfVictory = getSmallestMarginOfVictory(matchups),
             largestMarginOfVictory = getLargestMarginOfVictory(matchups),
             mostPointsAllowed = getMostPointsAllowed(matchups),
@@ -52,13 +52,13 @@ object ESPNRecordBookCalculator {
             lowestPointsAllowedPlusWithPlayoffs = getFewestPointsAllowedPlus(matchups, includePlayoffs = true, skipCurrentYear = skipCurrentYear),
         )
 
-    fun getModernRecordBook(allMatchups: List<Matchup>): RecordBook =
-        getRecordBookFromMatchups(allMatchups.afterIncrease())
+    fun getModernRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false): RecordBook =
+        getRecordBookFromMatchups(allMatchups.afterIncrease(), skipCurrentYear = skipCurrentYear, excludeDeadSlotTeams = excludeDeadSlotTeams)
 
-    fun getCurrentYearRecordBook(allMatchups: List<Matchup>): RecordBook =
-        getRecordBookFromMatchups(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false)
+    fun getCurrentYearRecordBook(allMatchups: List<Matchup>, excludeDeadSlotTeams: Boolean = false): RecordBook =
+        getRecordBookFromMatchups(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false, excludeDeadSlotTeams = excludeDeadSlotTeams)
 
-    fun getBestBallRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true): RecordBook =
+    fun getBestBallRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false): RecordBook =
         allMatchups.afterIncrease().let { matchups ->
             RecordBook(
                 mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
@@ -68,13 +68,13 @@ object ESPNRecordBookCalculator {
                 mostPointsPerWeek = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
                 mostPointsPerWeekWithPlayoffs = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsMatchup = getMostPointsInMatchup(matchups, bestBallScoreFunc),
-                fewestPointsGame = getFewestPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                fewestPointsGameInPlayoffs = getFewestPointsInGame(matchups, onlyPlayoffs = true, scoreFunction = bestBallScoreFunc),
+                fewestPointsGame = getFewestPointsInGame(matchups, includePlayoffs = true, excludeDeadSlotTeams = excludeDeadSlotTeams, scoreFunction = bestBallScoreFunc),
+                fewestPointsGameInPlayoffs = getFewestPointsInGame(matchups, onlyPlayoffs = true, excludeDeadSlotTeams = excludeDeadSlotTeams, scoreFunction = bestBallScoreFunc),
                 fewestPointsSeason = getFewestPointsInSeason(matchups, scoreFunction = bestBallScoreFunc),
                 fewestPointsSeasonWithPlayoffs = getFewestPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 fewestPointsPerWeek = getFewestPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
                 fewestPointsPerWeekWithPlayoffs = getFewestPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                fewestPointsMatchup = getFewestPointsInMatchup(matchups, bestBallScoreFunc),
+                fewestPointsMatchup = getFewestPointsInMatchup(matchups, excludeDeadSlotTeams = excludeDeadSlotTeams, bestBallScoreFunc),
                 smallestMarginOfVictory = getSmallestMarginOfVictory(matchups, bestBallScoreFunc),
                 largestMarginOfVictory = getLargestMarginOfVictory(matchups, bestBallScoreFunc),
                 mostPointsAllowed = getMostPointsAllowed(matchups, scoreFunction = bestBallScoreFunc),
@@ -111,8 +111,8 @@ object ESPNRecordBookCalculator {
             )
         }
 
-    fun getCurrentYearBestBallRecordBook(allMatchups: List<Matchup>): RecordBook =
-        getBestBallRecordBook(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false)
+    fun getCurrentYearBestBallRecordBook(allMatchups: List<Matchup>, excludeDeadSlotTeams: Boolean = false): RecordBook =
+        getBestBallRecordBook(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false, excludeDeadSlotTeams = excludeDeadSlotTeams)
 
     fun getMostPointsInGame(
         matchups: List<Matchup>,
@@ -143,8 +143,10 @@ object ESPNRecordBookCalculator {
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
         onlyPlayoffs: Boolean = false,
+        excludeDeadSlotTeams: Boolean = false,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) = getProperMatchups(matchups, includePlayoffs = includePlayoffs, onlyPlayoffs = onlyPlayoffs)
+        .filter { matchup -> !excludeDeadSlotTeams || !matchup.hasDeadSlotTeam() }
         .flatMap { matchup ->
             listOf(
                 RecordBookEntry(
@@ -298,9 +300,11 @@ object ESPNRecordBookCalculator {
 
     private fun getFewestPointsInMatchup(
         matchups: List<Matchup>,
+        excludeDeadSlotTeams: Boolean = false,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) =
         matchups
+            .filter { matchup -> !excludeDeadSlotTeams || !matchup.hasDeadSlotTeam() }
             .sortedBy { scoreFunction(it.homeScores) + scoreFunction(it.awayScores) }.map { matchup ->
                 RecordBookEntry(
                     scoreFunction(matchup.homeScores) + scoreFunction(matchup.awayScores),

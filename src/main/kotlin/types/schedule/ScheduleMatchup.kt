@@ -9,5 +9,7 @@ data class ScheduleMatchup(
 ) {
     fun contains(team: Team) = home == team || away == team
     fun contains(teamId: Int) = home.id == teamId || away.id == teamId
-    fun flipped() = ScheduleMatchup(away, home, matchupType)
+    fun flipped() = ScheduleMatchup(home = away, away = home, matchupType)
+
+    override fun toString() = "${away.fullName} @ ${home.fullName} ($matchupType)"
 }

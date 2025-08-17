@@ -5,6 +5,7 @@ import com.squareup.moshi.Types
 import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.types.Member
 import dev.mfazio.espnffb.types.Team
+import dev.mfazio.espnffb.types.TeamYearMap
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import java.io.File
 
@@ -38,7 +39,7 @@ object ESPNLocalServiceHandler {
 
         val listType = Types.newParameterizedType(List::class.java, Team::class.java)
         val mapType = Types.newParameterizedType(Map::class.java, Integer::class.java, listType)
-        val teamYearMap = moshi.adapter<Map<Int, List<Team>>>(mapType).fromJson(jsonData)
+        val teamYearMap = moshi.adapter<TeamYearMap>(mapType).fromJson(jsonData)
 
         return teamYearMap?.get(year)
     }

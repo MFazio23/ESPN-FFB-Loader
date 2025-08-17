@@ -16,8 +16,8 @@ data class Matchup(
     val playoffTierType: PlayoffTierType? = null,
     val isHomeOriginalWinner: Boolean = true,
 ) {
-    fun homeTeam(teamsMap: Map<Int, List<Team>>) = teamsMap[year]?.firstOrNull { it.id == homeTeamId }
-    fun awayTeam(teamsMap: Map<Int, List<Team>>) = teamsMap[year]?.firstOrNull { it.id == awayTeamId }
+    fun homeTeam(teamsMap: TeamYearMap) = teamsMap[year]?.firstOrNull { it.id == homeTeamId }
+    fun awayTeam(teamsMap: TeamYearMap) = teamsMap[year]?.firstOrNull { it.id == awayTeamId }
     fun includesTeam(teamId: Int) = teamId == homeTeamId || teamId == awayTeamId
     fun didTeamWin(teamId: Int) = didTeamWin(listOf(teamId))
     fun didTeamWin(teamIds: List<Int>) =

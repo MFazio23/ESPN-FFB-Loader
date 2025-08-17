@@ -2,6 +2,7 @@ package dev.mfazio.espnffb.converters
 
 import dev.mfazio.espnffb.ESPNConfig.excludedMemberIds
 import dev.mfazio.espnffb.ESPNConfig.excludedMemberIdsPerYear
+import dev.mfazio.espnffb.ESPNConfig.mappedMemberIds
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.utils.extensions.getOrZero
@@ -57,16 +58,18 @@ fun getMatchupsFromScoreboards(
 
 fun getESPNMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) = scoreboards
     .flatMap { it.members }
-    .distinctBy { it.id }
     .map { member ->
-        member.copy(id = member.id.replace("{", "").replace("}", ""))
+        val startingMemberId = member.id.replace("{", "").replace("}", "")
+        val memberId = mappedMemberIds.getOrDefault(startingMemberId, startingMemberId)
+        member.copy(id = memberId)
     }
+    .distinctBy { it.id }
     .filter { !excludedMemberIds.contains(it.id) }
 
 fun getMemberListFromScoreboards(scoreboards: List<ESPNScoreboard>) =
     getESPNMemberListFromScoreboards(scoreboards).map(Member::fromESPNMember)
 
-fun getTeamYearMapFromScoreboards(scoreboards: List<ESPNScoreboard>): Map<Int, List<Team>> = scoreboards
+fun getTeamYearMapFromScoreboards(scoreboards: List<ESPNScoreboard>): TeamYearMap = scoreboards
     .groupBy { it.seasonId }
     .mapValues { (seasonId, scoreboards) ->
         getTeamListFromScoreboards(scoreboards, excludedMemberIdsPerYear[seasonId] ?: emptyList())

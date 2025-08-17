@@ -18,7 +18,7 @@ object TopScoringPlayerWeeks : VariousFactGenerator {
     override fun generate(
         scoreboards: List<ESPNScoreboard>,
         matchups: List<Matchup>,
-        teamsMap: Map<Int, List<Team>>,
+        teamsMap: TeamYearMap,
         allTeams: List<Team>,
         members: List<Member>
     ): List<VariousFactCard> {
@@ -52,7 +52,7 @@ object TopScoringPlayerWeeks : VariousFactGenerator {
 
     fun listTopScoringPlayerWeeks(
         matchups: List<Matchup>,
-        teamsMap: Map<Int, List<Team>>,
+        teamsMap: TeamYearMap,
     ) {
         val topScoringPlayerWeeks = getTopScoringPlayerWeeks(matchups, teamsMap)
 
@@ -70,7 +70,7 @@ object TopScoringPlayerWeeks : VariousFactGenerator {
 
     fun getTopScoringPlayerWeeks(
         matchups: List<Matchup>,
-        teamsMap: Map<Int, List<Team>>,
+        teamsMap: TeamYearMap,
         excludedPositions: List<Position> = emptyList(),
     ): List<PlayerWeek> = matchups.flatMap { matchup ->
         val yearTeams = teamsMap[matchup.year]

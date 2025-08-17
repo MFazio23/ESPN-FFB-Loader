@@ -1,5 +1,6 @@
 package dev.mfazio.espnffb.types
 
+import dev.mfazio.espnffb.ESPNConfig.mappedMemberIds
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import dev.mfazio.espnffb.types.espn.ESPNTeam
 
@@ -34,17 +35,20 @@ data class Team(
             members: List<ESPNMember>,
             year: Int = -1,
             excludedMemberIds: List<String>
-        ): Team =
-            Team(
-                id = team.id,
-                owners = team.owners.mapNotNull { memberId ->
-                    members.filter { !excludedMemberIds.contains(it.id) }.firstOrNull { "{${it.id}}" == memberId }?.id
-                },
-                name = team.name?.trim(),
-                location = team.location?.trim(),
-                nickname = team.nickname?.trim(),
-                shortName = team.abbrev,
-                year = year,
-            )
+        ): Team = Team(
+            id = team.id,
+            owners = team.owners.mapNotNull { memberId ->
+                val parsedId = memberId.trim().removePrefix("{").removeSuffix("}")
+                val validId = mappedMemberIds.getOrDefault(parsedId, parsedId)
+                members.filter { !excludedMemberIds.contains(it.id) }.firstOrNull { it.id == validId }?.id
+            },
+            name = team.name?.trim(),
+            location = team.location?.trim(),
+            nickname = team.nickname?.trim(),
+            shortName = team.abbrev,
+            year = year,
+        )
     }
 }
+
+typealias TeamYearMap = Map<Int, List<Team>>

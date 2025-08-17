@@ -10,7 +10,7 @@ object ESPNStandingsCalculator {
         matchups: List<Matchup>,
         members: List<Member>,
         teams: List<Team>,
-        teamsMap: Map<Int, List<Team>> = emptyMap()
+        teamsMap: TeamYearMap = emptyMap()
     ): List<Standings> {
         val (startYear, endYear) = matchups.minOf { it.year } to matchups.maxOf { it.year }
         val validTeams = teams.filter { it.year in startYear..endYear }
@@ -59,7 +59,7 @@ object ESPNStandingsCalculator {
     fun getWinsForMember(
         matchups: List<Matchup>,
         member: Member,
-        teamsMap: Map<Int, List<Team>>
+        teamsMap: TeamYearMap
     ): StandingsIntEntry {
 
         val memberTeams = teamsMap
@@ -86,7 +86,7 @@ object ESPNStandingsCalculator {
     private fun getTopSixScoringWins(
         member: Member,
         matchups: List<Matchup>,
-        teamsMap: Map<Int, List<Team>>
+        teamsMap: TeamYearMap
     ) = matchups
         .groupBy { it.year }
         .mapValues { (year, matchups) ->
@@ -208,7 +208,7 @@ object ESPNStandingsCalculator {
     private fun getPlayoffAppearanceCount(
         matchups: List<Matchup>,
         member: Member,
-        teamsMap: Map<Int, List<Team>>
+        teamsMap: TeamYearMap
     ): StandingsIntEntry =
         matchups
             .groupBy { it.year }
