@@ -18,6 +18,7 @@ object ChartsHandler {
         return mapOf(
             yearlyMemberWinsKey to generateYearlyMemberWinsChartData(scoreboards, matchups, teamsMap, members),
             yearlyMemberStandingKey to generateYearlyMemberStandingChartData(scoreboards, matchups, teamsMap, members),
+            yearlyMemberPointsKey to generateYearlyMemberPointsChartData(scoreboards, matchups, teamsMap, members),
         )
     }
 
@@ -108,6 +109,49 @@ object ChartsHandler {
         }
     }
 
+    private fun generateYearlyMemberPointsChartData(
+        scoreboards: List<ESPNScoreboard>,
+        matchups: List<Matchup>,
+        teamsMap: TeamYearMap,
+        members: List<Member>
+    ): List<ChartData> {
+        val seasonResults = ESPNStandingsCalculator.getPerSeasonResults(scoreboards, members, matchups, teamsMap)
+        return members.mapNotNull { member ->
+            val memberResults = seasonResults[member] ?: return@mapNotNull null
+            LineChartData(
+                type = ChartType.Line,
+                chartId = "$yearlyMemberPointsKey-${member.id}",
+                dataset = memberResults.map { (year, yearResult) ->
+                    mapOf(
+                        "year" to year,
+                        "pointsScored" to yearResult.pointsScored,
+                        "pointsAgainst" to yearResult.pointsAgainst,
+                    )
+                },
+                seriesData = listOf(
+                    SeriesDataEntry(
+                        dataKey = "pointsScored",
+                        label = "Points Scored",
+                    ),
+                    SeriesDataEntry(
+                        dataKey = "pointsAgainst",
+                        label = "Points Against",
+                    )
+                ),
+                xAxis = LineChartAxis(
+                    dataKey = "year",
+                    min = ESPNConfig.historicalStartYear.toDouble(),
+                    max = ESPNConfig.currentYear.toDouble(),
+                ),
+                yAxis = LineChartAxis(
+                    min = memberResults.minOf { (_, result) -> minOf(result.pointsScored, result.pointsAgainst) },
+                    max = memberResults.maxOf { (_, result) -> maxOf(result.pointsScored, result.pointsAgainst) },
+                )
+            )
+        }
+    }
+
     const val yearlyMemberWinsKey = "yearly-member-wins"
     const val yearlyMemberStandingKey = "yearly-member-standing"
+    const val yearlyMemberPointsKey = "yearly-member-points"
 }

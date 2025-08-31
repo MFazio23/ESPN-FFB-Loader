@@ -5,6 +5,8 @@ data class SeasonResult(
     val regularSeasonWins: Int,
     val playoffGames: Int,
     val playoffWins: Int,
+    val pointsScored: Double,
+    val pointsAgainst: Double,
     val finalSeasonStanding: Int? = null,
     val isChampion: Boolean = false,
 ) {

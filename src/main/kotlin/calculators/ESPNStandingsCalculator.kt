@@ -216,6 +216,8 @@ object ESPNStandingsCalculator {
                         regularSeasonWins = getWinsForTeam(team, regularSeasonMatchups, year).standardScoring,
                         playoffGames = playoffMatchups.count { it.year == year && it.includesTeam(team.id) },
                         playoffWins = getWinsForTeam(team, playoffMatchups, year).standardScoring,
+                        pointsScored = getPointsScored(regularSeasonMatchups + playoffMatchups, member, listOf(team)).standardScoring,
+                        pointsAgainst = getPointsAgainst(regularSeasonMatchups + playoffMatchups, member, listOf(team)).standardScoring,
                         finalSeasonStanding = getFinalStandingForTeam(year, team.id, scoreboards),
                         isChampion = isChampionInYear(year, team.id, playoffMatchups),
                     )
