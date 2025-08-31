@@ -116,6 +116,9 @@ object ChartsHandler {
         members: List<Member>
     ): List<ChartData> {
         val seasonResults = ESPNStandingsCalculator.getPerSeasonResults(scoreboards, members, matchups, teamsMap)
+        val allResults = seasonResults.flatMap { it.value.values }
+        val minPoints = allResults.minOf { minOf(it.pointsScored, it.pointsAgainst) }
+        val maxPoints = allResults.maxOf { maxOf(it.pointsScored, it.pointsAgainst) }
         return members.mapNotNull { member ->
             val memberResults = seasonResults[member] ?: return@mapNotNull null
             LineChartData(
@@ -144,8 +147,8 @@ object ChartsHandler {
                     max = ESPNConfig.currentYear.toDouble(),
                 ),
                 yAxis = LineChartAxis(
-                    min = memberResults.minOf { (_, result) -> minOf(result.pointsScored, result.pointsAgainst) },
-                    max = memberResults.maxOf { (_, result) -> maxOf(result.pointsScored, result.pointsAgainst) },
+                    min = minPoints,
+                    max = maxPoints,
                 )
             )
         }
