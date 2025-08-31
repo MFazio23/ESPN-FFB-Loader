@@ -198,7 +198,7 @@ object ESPNRecordBookCalculator {
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) = getPointsPlus(matchups, includePlayoffs, skipCurrentYear, scoreFunction).sortedBy { it.value }.take(ITEMS_TO_INCLUDE)
 
-    private fun getPointsPlus(
+    fun getPointsPlus(
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
         skipCurrentYear: Boolean = true,
@@ -392,7 +392,7 @@ object ESPNRecordBookCalculator {
             .take(ITEMS_TO_INCLUDE)
     }
 
-    private fun getMostPointsAllowedPlus(
+    fun getPointsAllowedPlus(
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
         skipCurrentYear: Boolean = true,
@@ -409,6 +409,13 @@ object ESPNRecordBookCalculator {
                 )
             }
         }
+
+    private fun getMostPointsAllowedPlus(
+        matchups: List<Matchup>,
+        includePlayoffs: Boolean = false,
+        skipCurrentYear: Boolean = true,
+        scoreFunction: (TeamScores) -> Double = standardScoreFunc
+    ) = getPointsAllowedPlus(matchups, includePlayoffs, skipCurrentYear, scoreFunction)
         .sortedByDescending { it.value }
         .take(ITEMS_TO_INCLUDE)
 
@@ -458,18 +465,7 @@ object ESPNRecordBookCalculator {
         includePlayoffs: Boolean = false,
         skipCurrentYear: Boolean = true,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
-    ) = getPointsAllowedInSeason(matchups, includePlayoffs, skipCurrentYear, scoreFunction)
-        .flatMap { (year, teamScores) ->
-            teamScores.map { (teamId, score) ->
-                val averageScore = teamScores.filter { (id, _) -> teamId != id }.values.average()
-                val plusScore = (score / averageScore) * 100
-                RecordBookEntry(
-                    plusScore,
-                    mapOf(teamId to plusScore),
-                    year,
-                )
-            }
-        }
+    ) = getPointsAllowedPlus(matchups, includePlayoffs, skipCurrentYear, scoreFunction)
         .sortedBy { it.value }
         .take(ITEMS_TO_INCLUDE)
 

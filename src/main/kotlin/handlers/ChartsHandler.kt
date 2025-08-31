@@ -1,6 +1,7 @@
 package dev.mfazio.espnffb.handlers
 
 import dev.mfazio.espnffb.ESPNConfig
+import dev.mfazio.espnffb.calculators.ESPNRecordBookCalculator
 import dev.mfazio.espnffb.calculators.ESPNStandingsCalculator
 import dev.mfazio.espnffb.types.Matchup
 import dev.mfazio.espnffb.types.Member
@@ -19,6 +20,12 @@ object ChartsHandler {
             yearlyMemberWinsKey to generateYearlyMemberWinsChartData(scoreboards, matchups, teamsMap, members),
             yearlyMemberStandingKey to generateYearlyMemberStandingChartData(scoreboards, matchups, teamsMap, members),
             yearlyMemberPointsKey to generateYearlyMemberPointsChartData(scoreboards, matchups, teamsMap, members),
+            yearlyMemberPointsPlusKey to generateYearlyMemberPointsPlusChartData(
+                scoreboards,
+                matchups,
+                teamsMap,
+                members
+            ),
         )
     }
 
@@ -154,7 +161,74 @@ object ChartsHandler {
         }
     }
 
+    private fun generateYearlyMemberPointsPlusChartData(
+        scoreboards: List<ESPNScoreboard>,
+        matchups: List<Matchup>,
+        teamsMap: TeamYearMap,
+        members: List<Member>
+    ): List<ChartData> {
+        val pointsScoredPlus =
+            ESPNRecordBookCalculator.getPointsPlus(matchups, includePlayoffs = true, skipCurrentYear = true)
+        val pointsAllowedPlus =
+            ESPNRecordBookCalculator.getPointsAllowedPlus(matchups, includePlayoffs = true, skipCurrentYear = true)
+
+        val yearlyPointsScoredPlus = pointsScoredPlus.groupBy { it.season }
+        val yearlyPointsAllowedPlus = pointsAllowedPlus.groupBy { it.season }
+
+        val yearlyPointsPlus = yearlyPointsScoredPlus.mapValues { (year, points) ->
+            points to (yearlyPointsAllowedPlus[year] ?: emptyList())
+        }
+
+        val minPointsPlus = minOf(pointsScoredPlus.minOf { it.value }, pointsAllowedPlus.minOf { it.value })
+        val maxPointsPlus = maxOf(pointsScoredPlus.maxOf { it.value }, pointsAllowedPlus.maxOf { it.value })
+
+        return members.map { member ->
+            val memberPointsPlus = yearlyPointsPlus.mapValues { (year, yearResults) ->
+                val yearTeams = teamsMap[year] ?: return@mapValues null
+                val team = yearTeams.firstOrNull { it.owners.contains(member.id) } ?: return@mapValues null
+
+                val (yearPointsScoredPlus, yearPointsAllowedPlus) = yearResults
+
+                yearPointsScoredPlus.firstOrNull { it.recordHolders.keys.contains(team.id) }?.value to
+                yearPointsAllowedPlus.firstOrNull { it.recordHolders.keys.contains(team.id) }?.value
+            }
+            LineChartData(
+                type = ChartType.Line,
+                chartId = "$yearlyMemberPointsPlusKey-${member.id}",
+                dataset = memberPointsPlus.mapNotNull { (year, yearPointsPlus) ->
+                    if (year == null || yearPointsPlus == null) return@mapNotNull null
+                    val (yearPointsScoredPlus, yearPointsAllowedPlus) = yearPointsPlus
+                    mapOf(
+                        "year" to year,
+                        "pointsScoredPlus" to yearPointsScoredPlus,
+                        "pointsAllowedPlus" to yearPointsAllowedPlus
+                    )
+                },
+                seriesData = listOf(
+                    SeriesDataEntry(
+                        dataKey = "pointsScoredPlus",
+                        label = "Points Scored+",
+                    ),
+                    SeriesDataEntry(
+                        dataKey = "pointsAllowedPlus",
+                        label = "Points Allowed+",
+                    ),
+                ),
+                xAxis = LineChartAxis(
+                    dataKey = "year",
+                    min = ESPNConfig.historicalStartYear.toDouble(),
+                    max = ESPNConfig.currentYear.toDouble(),
+                ),
+                yAxis = LineChartAxis(
+                    min = minPointsPlus,
+                    max = maxPointsPlus,
+                )
+            )
+        }
+    }
+
     const val yearlyMemberWinsKey = "yearly-member-wins"
     const val yearlyMemberStandingKey = "yearly-member-standing"
     const val yearlyMemberPointsKey = "yearly-member-points"
+    const val yearlyMemberPointsPlusKey = "yearly-member-points-plus"
 }
