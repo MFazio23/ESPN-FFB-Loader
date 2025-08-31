@@ -1,7 +1,9 @@
 package dev.mfazio.espnffb.types.espn
 
+import com.squareup.moshi.JsonClass
 import dev.mfazio.utils.extensions.orZero
 
+@JsonClass(generateAdapter = true)
 data class ESPNPlayerPoolEntry(
     val appliedStatTotal: Double,
     val id: Int,
@@ -9,7 +11,7 @@ data class ESPNPlayerPoolEntry(
     val keeperValue: Int = 0,
     val keeperValueFuture: Int? = null,
     val player: ESPNPlayer,
-    val status: String
+    val status: String? = null
 ) {
     val projectedStatTotal: Double
         get() = player.stats.firstOrNull { stats ->

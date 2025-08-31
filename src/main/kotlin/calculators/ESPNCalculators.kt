@@ -9,7 +9,7 @@ import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 fun ESPNPlayerPoolEntry.getStatTotal(newKickerStats: Boolean) = if (!newKickerStats) this.appliedStatTotal else {
     val playerStats = this.player.stats.firstOrNull()
     if (playerStats != null && this.player.defaultPositionId == Position.K.id) {
-        KickerStats.fromESPNStats(playerStats.stats).getModernScore().toDouble()
+        KickerStats.fromESPNStats(playerStats.stats ?: emptyMap()).getModernScore().toDouble()
     } else this.appliedStatTotal
 }
 

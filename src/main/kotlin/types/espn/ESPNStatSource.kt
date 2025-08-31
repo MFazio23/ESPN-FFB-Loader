@@ -5,6 +5,6 @@ enum class ESPNStatSource(val id: Int) {
     Projected(1);
 
     companion object {
-        fun fromId(id: Int) = values().firstOrNull { it.id == id }
+        fun fromId(id: Int?) = ESPNStatSource.entries.firstOrNull { it.id == id }
     }
 }

@@ -1,5 +1,8 @@
 package dev.mfazio.espnffb.types.espn
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ESPNDivisionStatus(
     val gamesBack: Double,
     val losses: Int,

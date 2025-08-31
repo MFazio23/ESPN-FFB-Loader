@@ -1,5 +1,8 @@
 package dev.mfazio.espnffb.types.espn
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ESPNStatus(
     val activatedDate: Long,
     val createdAsLeagueType: Int,
@@ -16,9 +19,9 @@ data class ESPNStatus(
     val isWaiverOrderEdited: Boolean,
     val latestScoringPeriod: Int,
     val previousSeasons: List<Int>,
-    val standingsUpdateDate: Long,
+    val standingsUpdateDate: Long? = null,
     val teamsJoined: Int,
     val transactionScoringPeriod: Int,
-    val waiverLastExecutionDate: Long,
+    val waiverLastExecutionDate: Long? = null,
     val waiverProcessStatus: Map<String, Int>
 )

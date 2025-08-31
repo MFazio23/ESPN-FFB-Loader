@@ -1,16 +1,19 @@
 package dev.mfazio.espnffb.types.espn
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ESPNPlayer(
     val active: Boolean,
     val defaultPositionId: Int,
-    val eligibleDateByPosition: Any,
+    val eligibleDateByPosition: Any?,
     val eligibleSlots: List<Int>,
     val firstName: String,
     val fullName: String,
     val id: Int,
     val injured: Boolean,
-    val injuryStatus: String,
-    val jersey: String,
+    val injuryStatus: String? = null,
+    val jersey: String? = null,
     val lastName: String,
     val proTeamId: Int,
     val stats: List<ESPNStat>,
