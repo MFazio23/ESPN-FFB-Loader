@@ -1,5 +1,8 @@
 package dev.mfazio.espnffb.types
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class TeamRecord(
     val games: Int = 0,
     val wins: Int = 0,

@@ -1,9 +1,11 @@
 package dev.mfazio.espnffb.types
 
+import com.squareup.moshi.JsonClass
 import dev.mfazio.espnffb.ESPNConfig.mappedMemberIds
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import dev.mfazio.espnffb.types.espn.ESPNTeam
 
+@JsonClass(generateAdapter = true)
 data class Team(
     val id: Int,
     val owners: List<String>,

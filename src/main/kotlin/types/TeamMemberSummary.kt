@@ -1,5 +1,8 @@
 package dev.mfazio.espnffb.types
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class TeamMemberSummary(
     val id: String,
     val name: String,
