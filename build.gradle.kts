@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.20"
+    id("com.google.devtools.ksp").version("1.9.20-1.0.14")
     application
 }
 
@@ -15,6 +16,11 @@ repositories {
 
 dependencies {
     implementation("com.github.MFazio23:fazio-utils-jvm:1.1.2")
+
+    implementation("com.squareup.moshi:moshi:1.15.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+    implementation("com.squareup.moshi:moshi-adapters:1.15.0")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 

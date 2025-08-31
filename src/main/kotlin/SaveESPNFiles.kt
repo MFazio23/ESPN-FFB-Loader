@@ -5,6 +5,7 @@ import dev.mfazio.espnffb.calculators.ESPNStandingsCalculator
 import dev.mfazio.espnffb.calculators.ESPNTeamRecordsCalculator
 import dev.mfazio.espnffb.converters.*
 import dev.mfazio.espnffb.extensions.toTeamMemberSummaries
+import dev.mfazio.espnffb.handlers.ChartsHandler
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
 import dev.mfazio.espnffb.types.RecordBooks
 import dev.mfazio.espnffb.various.VariousFactHandler
@@ -71,4 +72,7 @@ suspend fun main() {
 
     val variousFactCards = VariousFactHandler.generateList(scoreboards, matchups, teamsMap, teams, members)
     ESPNLocalFileHandler.saveVariousFactCards(variousFactCards)
+
+    val chartsData = ChartsHandler.generateChartData(scoreboards, matchups, teamsMap, members)
+    ESPNLocalFileHandler.saveChartsData(chartsData)
 }

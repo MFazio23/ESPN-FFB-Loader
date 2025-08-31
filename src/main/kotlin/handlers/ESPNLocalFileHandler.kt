@@ -2,12 +2,18 @@ package dev.mfazio.espnffb.handlers
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.calculators.getKeeperPrices
 import dev.mfazio.espnffb.converters.getESPNMemberListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamListFromScoreboards
 import dev.mfazio.espnffb.converters.getTeamYearMapFromScoreboards
 import dev.mfazio.espnffb.types.*
+import dev.mfazio.espnffb.types.charts.ChartData
+import dev.mfazio.espnffb.types.charts.ChartType
+import dev.mfazio.espnffb.types.charts.LineChartData
+import dev.mfazio.espnffb.types.charts.PieChartData
 import dev.mfazio.espnffb.types.espn.ESPNMember
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.espnffb.various.VariousFactCard
@@ -17,8 +23,15 @@ import java.io.File
 object ESPNLocalFileHandler {
     private val dataFolderPath = "${ESPNConfig.baseFileDirectory}espn-data"
     private val rawDataFolderPath = "$dataFolderPath/raw"
+    private val chartsDataFolderPath = "$dataFolderPath/charts"
 
-    private val moshi = Moshi.Builder().build()
+    private val moshi = Moshi.Builder()
+        .add(
+            PolymorphicJsonAdapterFactory.of(ChartData::class.java, "type")
+                .withSubtype(LineChartData::class.java, ChartType.Line.name)
+                .withSubtype(PieChartData::class.java, ChartType.Pie.name)
+        ).addLast(KotlinJsonAdapterFactory())
+        .build()
 
     fun loadAllLocalScoreboardFiles(): List<ESPNScoreboard> =
         (ESPNConfig.historicalStartYear..ESPNConfig.modernEndYear).flatMap { year ->
@@ -213,5 +226,19 @@ object ESPNLocalFileHandler {
         File("$dataFolderPath/keeper-prices-${year}.json").writeText(
             adapter.toJson(keeperPrices)
         )
+    }
+
+    fun saveChartsData(chartsData: Map<String, List<ChartData>>) {
+        val chartListType = Types.newParameterizedType(List::class.java, ChartData::class.java)
+
+        val adapter = moshi.adapter<List<ChartData>>(chartListType)
+
+        createDataFolderAsNeeded(chartsDataFolderPath)
+
+        chartsData.forEach { (chartId, chartData) ->
+            File("$chartsDataFolderPath/$chartId.json").writeText(
+                adapter.toJson(chartData)
+            )
+        }
     }
 }

@@ -1,8 +1,13 @@
 package dev.mfazio.espnffb.calculators
 
+import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.ESPNConfig.excludedMemberIds
 import dev.mfazio.espnffb.ESPNConfig.excludedMemberIdsPerYear
 import dev.mfazio.espnffb.types.*
+import dev.mfazio.espnffb.types.espn.ESPNScoreboard
+import dev.mfazio.utils.extensions.filterNotNullValues
+import kotlin.collections.associateWith
+import kotlin.collections.find
 
 object ESPNStandingsCalculator {
 
@@ -174,6 +179,13 @@ object ESPNStandingsCalculator {
                     }.toStandingsIntEntry()
             }
 
+    fun getFinalStandingForTeam(year: Int, teamId: Int, scoreboards: List<ESPNScoreboard>): Int? = scoreboards
+        .filter { it.seasonId == year }
+        .maxByOrNull { it.scoringPeriodId }
+        ?.teams
+        ?.first { it.id == teamId }
+        ?.rankCalculatedFinal
+
     fun isChampionInYear(year: Int, teamId: Int, matchups: List<Matchup>): Boolean =
         matchups
             .filter { it.year == year }
@@ -184,6 +196,35 @@ object ESPNStandingsCalculator {
             .any { matchup ->
                 matchup.didTeamWin(teamId)
             }
+
+    fun getPerSeasonResults(
+        scoreboards: List<ESPNScoreboard>,
+        members: List<Member>,
+        matchups: List<Matchup>,
+        teamsMap: TeamYearMap
+    ): Map<Member, Map<Int, SeasonResult>> {
+        val regularSeasonMatchups = matchups.filter { it.playoffTierType == PlayoffTierType.None }
+        val playoffMatchups = matchups.filter { it.playoffTierType != PlayoffTierType.None }
+
+        return members.associateWith { member ->
+            //Go up through last year
+            (ESPNConfig.historicalStartYear..<ESPNConfig.currentYear).associateWith { year ->
+                val team = teamsMap[year]?.find { it.owners.contains(member.id) }
+                if (team != null) {
+                    SeasonResult(
+                        regularSeasonGames = regularSeasonMatchups.count { it.year == year && it.includesTeam(team.id) },
+                        regularSeasonWins = getWinsForTeam(team, regularSeasonMatchups, year).standardScoring,
+                        playoffGames = playoffMatchups.count { it.year == year && it.includesTeam(team.id) },
+                        playoffWins = getWinsForTeam(team, playoffMatchups, year).standardScoring,
+                        finalSeasonStanding = getFinalStandingForTeam(year, team.id, scoreboards),
+                        isChampion = isChampionInYear(year, team.id, playoffMatchups),
+                    )
+                } else {
+                    null
+                }
+            }.filterNotNullValues()
+        }
+    }
 
     private fun getChampionshipGameAppearances(
         matchups: List<Matchup>,
