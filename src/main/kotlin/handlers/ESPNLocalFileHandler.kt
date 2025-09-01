@@ -25,7 +25,7 @@ object ESPNLocalFileHandler {
     private val rawDataFolderPath = "$dataFolderPath/raw"
     private val chartsDataFolderPath = "$dataFolderPath/charts"
 
-    private val moshi = Moshi.Builder()
+    val moshi: Moshi = Moshi.Builder()
         .add(
             PolymorphicJsonAdapterFactory.of(ChartData::class.java, "type")
                 .withSubtype(LineChartData::class.java, ChartType.Line.name)

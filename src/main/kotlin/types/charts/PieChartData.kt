@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 data class PieChartData(
     @Transient override val type: ChartType = ChartType.Pie,
     override val chartId: String,
-    override val dataset: List<Any>,
+    override val dataset: List<*>,
     override val seriesData: List<SeriesDataEntry>,
     val width: Double? = null,
     val height: Double? = null,

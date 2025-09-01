@@ -8,7 +8,7 @@ enum class LineupSlot(val espnId: Int, val displayOverride: String? = null) {
     DEF(16),
     K(17),
     RBWR(3, "RB/WR"),
-    WRTE(5),
+    WRTE(5, "WR/TE"),
     BENCH(20, "Bench"),
     IR(21, "IR"),
     NA(-1, "N/A");

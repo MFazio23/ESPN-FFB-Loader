@@ -25,7 +25,7 @@ fun generateYearlyMemberWinsChartData(
         val memberWins = yearlyWins[member] ?: return@mapNotNull null
         LineChartData(
             type = ChartType.Line,
-            chartId = "$yearlyMemberWinsKey-${'$'}{member.id}",
+            chartId = "$yearlyMemberWinsKey-${member.id}",
             dataset = memberWins.map { (year, yearResult) ->
                 mapOf(
                     "year" to year,
@@ -51,6 +51,7 @@ fun generateYearlyMemberWinsChartData(
                 dataKey = "year",
                 min = ESPNConfig.historicalStartYear.toDouble(),
                 max = ESPNConfig.currentYear.toDouble(),
+                tickMinStep = 1.0,
             ),
             yAxis = LineChartAxis(
                 dataKey = "wins",

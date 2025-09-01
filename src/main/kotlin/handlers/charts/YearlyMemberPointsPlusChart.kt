@@ -46,7 +46,7 @@ fun generateYearlyMemberPointsPlusChartData(
         }
         LineChartData(
             type = ChartType.Line,
-            chartId = "$yearlyMemberPointsPlusKey-${'$'}{member.id}",
+            chartId = "$yearlyMemberPointsPlusKey-${member.id}",
             dataset = memberPointsPlus.mapNotNull { (year, yearPointsPlus) ->
                 if (year == null || yearPointsPlus == null) return@mapNotNull null
                 val (yearPointsScoredPlus, yearPointsAllowedPlus) = yearPointsPlus
@@ -70,6 +70,7 @@ fun generateYearlyMemberPointsPlusChartData(
                 dataKey = "year",
                 min = ESPNConfig.historicalStartYear.toDouble(),
                 max = ESPNConfig.currentYear.toDouble(),
+                tickMinStep = 1.0,
             ),
             yAxis = LineChartAxis(
                 min = minPointsPlus,

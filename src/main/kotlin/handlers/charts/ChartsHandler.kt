@@ -23,6 +23,7 @@ object ChartsHandler {
                 teamsMap,
                 members
             ),
+            yearlyPositionalPointsKey to generateYearlyPositionalPointsChart(scoreboards, matchups, teamsMap, members)
         )
     }
 }

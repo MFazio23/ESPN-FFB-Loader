@@ -46,6 +46,7 @@ fun generateYearlyMemberStandingChartData(
                 dataKey = "year",
                 min = ESPNConfig.historicalStartYear.toDouble(),
                 max = ESPNConfig.currentYear.toDouble(),
+                tickMinStep = 1.0,
             ),
             yAxis = LineChartAxis(
                 dataKey = "finalStanding",

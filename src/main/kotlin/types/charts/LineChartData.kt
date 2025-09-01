@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 data class LineChartData(
     @Transient override val type: ChartType = ChartType.Line,
     override val chartId: String,
-    override val dataset: List<Any>,
+    override val dataset: List<*>,
     override val seriesData: List<SeriesDataEntry>,
     val xAxis: LineChartAxis,
     val yAxis: LineChartAxis,
@@ -17,4 +17,5 @@ data class LineChartAxis(
     val min: Double? = null,
     val max: Double? = null,
     val reverse: Boolean = false,
+    val tickMinStep: Double? = null,
 )
