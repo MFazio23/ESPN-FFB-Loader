@@ -36,6 +36,12 @@ data class Matchup(
         else -> awayScores
     }
 
+    fun getPlayersByTeamId(teamId: Int?) = when (teamId) {
+        homeTeamId -> homePlayers
+        awayTeamId -> awayPlayers
+        else -> null
+    }
+
     fun isClose(threshold: Int = 10): Boolean {
         val homeScore = homeScores.standardScore
         val awayScore = awayScores.standardScore

@@ -5,7 +5,7 @@ import dev.mfazio.espnffb.calculators.ESPNStandingsCalculator
 import dev.mfazio.espnffb.calculators.ESPNTeamRecordsCalculator
 import dev.mfazio.espnffb.converters.*
 import dev.mfazio.espnffb.extensions.toTeamMemberSummaries
-import dev.mfazio.espnffb.handlers.ChartsHandler
+import dev.mfazio.espnffb.handlers.charts.ChartsHandler
 import dev.mfazio.espnffb.handlers.ESPNLocalFileHandler
 import dev.mfazio.espnffb.types.RecordBooks
 import dev.mfazio.espnffb.various.VariousFactHandler
@@ -13,10 +13,10 @@ import dev.mfazio.espnffb.various.VariousFactHandler
 suspend fun main() {
 
     ESPNLocalFileHandler.saveRawWeeklyDataToFiles(
-        startYear = 2025,
-        endYear = 2025,
-        startWeek = 1,
-        endWeek = 1,
+        startYear = 2024,
+        endYear = 2024,
+        startWeek = 17,
+        endWeek = 17,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
