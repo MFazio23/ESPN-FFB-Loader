@@ -56,7 +56,7 @@ fun generateYearlyMemberWinsChartData(
             yAxis = LineChartAxis(
                 dataKey = "wins",
                 min = 0.0,
-                max = memberWins.maxOf { (_, result) -> result.totalGames }.toDouble(),
+                max = memberWins.maxOfOrNull { (_, result) -> result.totalGames }?.toDouble(),
             )
         )
     }

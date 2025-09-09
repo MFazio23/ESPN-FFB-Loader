@@ -7,9 +7,8 @@ data class Member(
     val userName: String,
     val firstName: String,
     val lastName: String,
+    val fullName: String = "$firstName $lastName"
 ) {
-    val fullName = "$firstName $lastName"
-
     companion object {
         fun fromESPNMember(espnMember: ESPNMember) =
             Member(

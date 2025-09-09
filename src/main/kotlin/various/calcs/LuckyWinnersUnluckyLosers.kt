@@ -22,7 +22,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
         allTeams: List<Team>,
         members: List<Member>
     ): List<VariousFactCard> {
-        val (luckyWinners, unluckyLosers) = getLuckyWinnersUnluckyLosers(matchups, members, allTeams, teamsMap)
+        val (luckyWinners, unluckyLosers) = getLuckyWinnersUnluckyLosers(scoreboards, matchups, members, allTeams, teamsMap)
 
         return listOf(
             VariousFactCard(
@@ -51,6 +51,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
     }
 
     fun getLuckyWinnersUnluckyLosers(
+        scoreboards: List<ESPNScoreboard>,
         matchups: List<Matchup>,
         members: List<Member>,
         allTeams: List<Team>,
@@ -65,6 +66,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
             .groupBy { it.year }
             .forEach { (year, yearMatchups) ->
                 val leagueStandings = ESPNStandingsCalculator.getStandingsFromMatchups(
+                    scoreboards,
                     yearMatchups,
                     members,
                     allTeams,
@@ -111,6 +113,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
      */
 
     fun printLuckyWinnersUnluckyLosers(
+        scoreboards: List<ESPNScoreboard>,
         matchups: List<Matchup>,
         members: List<Member>,
         allTeams: List<Team>,
@@ -118,6 +121,7 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
         includePlayoffs: Boolean = false,
     ) {
         val (luckyWinners, unluckyLosers) = getLuckyWinnersUnluckyLosers(
+            scoreboards,
             matchups,
             members,
             allTeams,

@@ -13,10 +13,10 @@ import dev.mfazio.espnffb.various.VariousFactHandler
 suspend fun main() {
 
     ESPNLocalFileHandler.saveRawWeeklyDataToFiles(
-        startYear = 2024,
-        endYear = 2024,
-        startWeek = 17,
-        endWeek = 17,
+        startYear = 2025,
+        endYear = 2025,
+        startWeek = 1,
+        endWeek = 1,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
@@ -46,9 +46,10 @@ suspend fun main() {
     )
     ESPNLocalFileHandler.saveRecordBooks(recordBooks)
 
-    val standings = ESPNStandingsCalculator.getStandingsFromMatchups(matchups, members, teams, teamsMap)
+    val standings = ESPNStandingsCalculator.getStandingsFromMatchups(scoreboards, matchups, members, teams, teamsMap)
     ESPNLocalFileHandler.saveStandings(standings)
     val modernStandings = ESPNStandingsCalculator.getStandingsFromMatchups(
+        scoreboards.filter { it.seasonId >= ESPNConfig.modernStartYear },
         matchups.filter { it.year >= ESPNConfig.modernStartYear },
         members,
         teams,

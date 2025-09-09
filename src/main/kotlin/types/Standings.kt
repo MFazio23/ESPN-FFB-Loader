@@ -11,4 +11,6 @@ data class Standings(
     val championships: StandingsIntEntry? = null,
     val playoffApps: StandingsIntEntry? = null,
     val championshipApps: StandingsIntEntry? = null,
+    val topThreeFinishes: StandingsIntEntry? = null,
+    val topFiveFinishes: StandingsIntEntry? = null,
 )

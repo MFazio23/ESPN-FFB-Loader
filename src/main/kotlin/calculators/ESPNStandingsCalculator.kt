@@ -6,12 +6,11 @@ import dev.mfazio.espnffb.ESPNConfig.excludedMemberIdsPerYear
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.utils.extensions.filterNotNullValues
-import kotlin.collections.associateWith
-import kotlin.collections.find
 
 object ESPNStandingsCalculator {
 
     fun getStandingsFromMatchups(
+        scoreboards: List<ESPNScoreboard>,
         matchups: List<Matchup>,
         members: List<Member>,
         teams: List<Team>,
@@ -22,19 +21,32 @@ object ESPNStandingsCalculator {
 
         return members
             .filter { member -> validTeams.any { it.owners.contains(member.id) } }
-            .filter { !excludedMemberIds.contains(it.id) }.map { member ->
-            Standings(
-                member = member,
-                seasons = getSeasonsForMember(member, teams, startYear, endYear),
-                wins = getWinsForMember(matchups, member, teamsMap),
-                losses = getLossesForMember(matchups, member, teams),
-                pointsScored = getPointsScored(matchups, member, teams),
-                pointsAgainst = getPointsAgainst(matchups, member, teams),
-                championships = getChampionshipCount(matchups, member, teams),
-                playoffApps = getPlayoffAppearanceCount(matchups, member, teamsMap),
-                championshipApps = getChampionshipGameAppearances(matchups, member, teams),
-            )
-        }
+            .filter { !excludedMemberIds.contains(it.id) }
+            .map { member ->
+                val perSeasonResults = getPerSeasonResults(
+                    scoreboards = scoreboards,
+                    members = listOf(member),
+                    matchups = matchups,
+                    teamsMap = teamsMap
+                ).filter { (m, _) -> m == member }.values.firstOrNull()
+                Standings(
+                    member = member,
+                    seasons = getSeasonsForMember(member, teams, startYear, endYear),
+                    wins = getWinsForMember(matchups, member, teamsMap),
+                    losses = getLossesForMember(matchups, member, teams),
+                    pointsScored = getPointsScored(matchups, member, teams),
+                    pointsAgainst = getPointsAgainst(matchups, member, teams),
+                    championships = getChampionshipCount(matchups, member, teams),
+                    playoffApps = getPlayoffAppearanceCount(matchups, member, teamsMap),
+                    championshipApps = getChampionshipGameAppearances(matchups, member, teams),
+                    topThreeFinishes = perSeasonResults?.count { (_, result) ->
+                        result.finalSeasonStanding != null && result.finalSeasonStanding <= 3
+                    }?.toStandingsIntEntry(),
+                    topFiveFinishes = perSeasonResults?.count { (_, result) ->
+                        result.finalSeasonStanding != null && result.finalSeasonStanding <= 5
+                    }?.toStandingsIntEntry(),
+                )
+            }
     }
 
     fun getSeasonsForMember(member: Member, teamList: List<Team>, startYear: Int, endYear: Int): StandingsIntEntry =
@@ -216,8 +228,16 @@ object ESPNStandingsCalculator {
                         regularSeasonWins = getWinsForTeam(team, regularSeasonMatchups, year).standardScoring,
                         playoffGames = playoffMatchups.count { it.year == year && it.includesTeam(team.id) },
                         playoffWins = getWinsForTeam(team, playoffMatchups, year).standardScoring,
-                        pointsScored = getPointsScored(regularSeasonMatchups + playoffMatchups, member, listOf(team)).standardScoring,
-                        pointsAgainst = getPointsAgainst(regularSeasonMatchups + playoffMatchups, member, listOf(team)).standardScoring,
+                        pointsScored = getPointsScored(
+                            regularSeasonMatchups + playoffMatchups,
+                            member,
+                            listOf(team)
+                        ).standardScoring,
+                        pointsAgainst = getPointsAgainst(
+                            regularSeasonMatchups + playoffMatchups,
+                            member,
+                            listOf(team)
+                        ).standardScoring,
                         finalSeasonStanding = getFinalStandingForTeam(year, team.id, scoreboards),
                         isChampion = isChampionInYear(year, team.id, playoffMatchups),
                     )

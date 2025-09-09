@@ -1,5 +1,6 @@
 package dev.mfazio.espnffb.various.calcs
 
+import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.types.*
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 import dev.mfazio.espnffb.various.VariousFactCard
@@ -64,7 +65,7 @@ object TopScoringPlayerWeeks : VariousFactGenerator {
             .sortedByDescending { it.points }.take(100)
             .groupingBy { it.team.id }.eachCount().toList().sortedByDescending { (_, count) -> count }
             .mapIndexed { index, (teamId, count) ->
-                println("${index + 1}: ${teamsMap[2024]?.firstOrNull { it.id == teamId }?.fullName} - $count")
+                println("${index + 1}: ${teamsMap[ESPNConfig.currentYear]?.firstOrNull { it.id == teamId }?.fullName} - $count")
             }
     }
 
