@@ -174,7 +174,7 @@ object ESPNLocalFileHandler {
     }
 
     fun saveMemberVsTeamRecords(memberRecordMap: Map<Member, Map<Team, TeamRecord>>) {
-        val teamRecordMapType = Types.newParameterizedType(Map::class.java, Integer::class.java, TeamRecord::class.java)
+        val teamRecordMapType = Types.newParameterizedType(Map::class.java, Int::class.javaObjectType, TeamRecord::class.java)
         val type = Types.newParameterizedType(Map::class.java, String::class.java, teamRecordMapType)
 
         val outputMemberRecordMap = memberRecordMap
@@ -205,6 +205,17 @@ object ESPNLocalFileHandler {
 
         File("$dataFolderPath/owner-summaries.json").writeText(
             adapter.toJson(ownerSummaries)
+        )
+    }
+
+    fun saveYearlyMatchupResults(yearlyMatchupResults: Map<Int, SeasonTeamMatchupResult>) {
+        val matchupResultsMapType =
+            Types.newParameterizedType(Map::class.java, Int::class.javaObjectType, SeasonTeamMatchupResult::class.java)
+
+        val adapter = moshi.adapter<Map<Int, SeasonTeamMatchupResult>>(matchupResultsMapType)
+
+        File("$dataFolderPath/yearly-matchup-results.json").writeText(
+            adapter.toJson(yearlyMatchupResults)
         )
     }
 

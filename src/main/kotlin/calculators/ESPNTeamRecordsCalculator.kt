@@ -91,6 +91,20 @@ object ESPNTeamRecordsCalculator {
             }
     }
 
+    fun getYearlyMatchupResults(
+        matchups: List<Matchup>,
+    ): Map<Int, SeasonTeamMatchupResult> = matchups.groupBy { it.year }.mapValues { (year, yearMatchups) ->
+        SeasonTeamMatchupResult(
+            season = year,
+            weeks = yearMatchups.maxOf { it.week },
+            playoffStartWeek = yearMatchups.filter { it.playoffTierType != null }.minOf { it.week },
+            playoffEndWeek = yearMatchups.filter { it.playoffTierType != null }.maxOf { it.week },
+            matchupResults = yearMatchups.flatMapIndexed { matchupNumber, matchup ->
+                TeamMatchupResult.fromMatchup(matchup, matchupNumber)
+            }
+        )
+    }
+
     private fun getPointsFromMatchups(
         member: Member,
         teamMap: TeamYearMap,

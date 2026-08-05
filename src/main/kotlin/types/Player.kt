@@ -27,3 +27,8 @@ data class Player(
     }
 }
 
+fun List<Player>?.getProjectedScore() = if (this.isNullOrEmpty()) null else {
+    this.sumOf { player ->
+        if (player.lineupSlot.isStarter()) player.projectedPoints ?: 0.0 else 0.0
+    }
+}

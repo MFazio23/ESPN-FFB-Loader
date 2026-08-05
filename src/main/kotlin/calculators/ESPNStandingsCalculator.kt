@@ -152,7 +152,7 @@ object ESPNStandingsCalculator {
                         .any { it.id == matchup.awayTeamId || it.id == matchup.homeTeamId }
                 }
                 .sumOf { matchup ->
-                    matchup.getTeamScores(teams.filter { it.year == matchup.year }.map { it.id })?.standardScore ?: 0.0
+                    matchup.getTeamScores(teams.first { it.year == matchup.year }.let { it.id })?.standardScore ?: 0.0
                 }.let { points -> StandingsDoubleEntry(standardScoring = points, topSixRankings = points) }
         }
 
@@ -220,7 +220,7 @@ object ESPNStandingsCalculator {
 
         return members.associateWith { member ->
             //Go up through last year
-            (ESPNConfig.historicalStartYear..<ESPNConfig.currentYear).associateWith { year ->
+            (ESPNConfig.historicalStartYear..ESPNConfig.currentYear).associateWith { year ->
                 val team = teamsMap[year]?.find { it.owners.contains(member.id) }
                 if (team != null) {
                     SeasonResult(

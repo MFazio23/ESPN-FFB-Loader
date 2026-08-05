@@ -5,6 +5,7 @@ data class TeamScores(
     val bestBallScore: Double? = null,
 ) {
     fun getBestBallGap() = (bestBallScore ?: standardScore) - standardScore
+    fun isIdealWeek() = standardScore == bestBallScore
 }
 
 val standardScoreFunc: (TeamScores) -> Double = { scores -> scores.standardScore }

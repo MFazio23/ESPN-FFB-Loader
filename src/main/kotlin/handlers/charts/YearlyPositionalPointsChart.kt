@@ -98,8 +98,7 @@ fun generateYearlyPositionalPointsChart(
             xAxis = LineChartAxis(
                 dataKey = "year",
                 min = ESPNConfig.modernStartYear.toDouble(),
-                // Don't include current year as it may be incomplete.
-                max = ESPNConfig.currentYear.toDouble() - 1.0,
+                max = ESPNConfig.currentYear.toDouble(),
                 tickMinStep = 1.0,
             ),
             yAxis = LineChartAxis(

@@ -24,9 +24,9 @@ data class Matchup(
         (teamIds.contains(homeTeamId) && (homeScores.standardScore > awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && isHomeOriginalWinner)) ||
             (teamIds.contains(awayTeamId) && (homeScores.standardScore < awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && !isHomeOriginalWinner))
 
-    fun getTeamScores(teamIds: List<Int>) = when {
-        teamIds.contains(homeTeamId) -> homeScores
-        teamIds.contains(awayTeamId) -> awayScores
+    fun getTeamScores(teamId: Int) = when(teamId) {
+        homeTeamId -> homeScores
+        awayTeamId -> awayScores
         else -> null
     }
 
@@ -36,10 +36,17 @@ data class Matchup(
         else -> awayScores
     }
 
+    fun getProjectedScore(teamId: Int) = getPlayersByTeamId(teamId).getProjectedScore()
+
     fun getPlayersByTeamId(teamId: Int?) = when (teamId) {
         homeTeamId -> homePlayers
         awayTeamId -> awayPlayers
         else -> null
+    }
+
+    fun includesMember(member: Member, teamsMap: TeamYearMap): Boolean {
+        val memberTeamIds = teamsMap[year]?.filter { it.owners.contains(member.id) }?.map { it.id } ?: emptyList()
+        return includesTeam(memberTeamIds.firstOrNull() ?: -1)
     }
 
     fun isClose(threshold: Int = 10): Boolean {

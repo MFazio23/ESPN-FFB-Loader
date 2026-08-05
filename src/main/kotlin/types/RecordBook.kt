@@ -8,6 +8,7 @@ data class RecordBook(
     val mostPointsPerWeek: List<RecordBookEntry> = emptyList(),
     val mostPointsPerWeekWithPlayoffs: List<RecordBookEntry> = emptyList(),
     val mostPointsMatchup: List<RecordBookEntry> = emptyList(),
+    val mostPointsInPlayoffMatchup: List<RecordBookEntry> = emptyList(),
     val fewestPointsGame: List<RecordBookEntry> = emptyList(),
     val fewestPointsGameInPlayoffs: List<RecordBookEntry> = emptyList(),
     val fewestPointsSeason: List<RecordBookEntry> = emptyList(),

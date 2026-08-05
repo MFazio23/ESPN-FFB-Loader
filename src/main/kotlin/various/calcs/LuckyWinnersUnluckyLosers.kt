@@ -1,5 +1,6 @@
 package dev.mfazio.espnffb.various.calcs
 
+import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.calculators.ESPNStandingsCalculator
 import dev.mfazio.espnffb.types.Matchup
 import dev.mfazio.espnffb.types.Member
@@ -32,7 +33,8 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
                     VariousFactEntry(
                         number = index + 1,
                         title = winnerLoser.toTitle(),
-                        subtitle = winnerLoser.toSubTitle()
+                        subtitle = winnerLoser.toSubTitle(),
+                        isCurrent = winnerLoser.year == ESPNConfig.currentYear,
                     )
                 }
             ),
@@ -43,7 +45,8 @@ object LuckyWinnersUnluckyLosers : VariousFactGenerator {
                     VariousFactEntry(
                         number = index + 1,
                         title = winnerLoser.toTitle(),
-                        subtitle = winnerLoser.toSubTitle()
+                        subtitle = winnerLoser.toSubTitle(),
+                        isCurrent = winnerLoser.year == ESPNConfig.currentYear,
                     )
                 }
             )

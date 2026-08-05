@@ -5,7 +5,10 @@ import dev.mfazio.espnffb.types.Member
 import dev.mfazio.espnffb.types.Team
 import dev.mfazio.espnffb.types.TeamYearMap
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
+import dev.mfazio.espnffb.various.calcs.HighestProjectedWeeks
+import dev.mfazio.espnffb.various.calcs.LargestProjectionGaps
 import dev.mfazio.espnffb.various.calcs.LuckyWinnersUnluckyLosers
+import dev.mfazio.espnffb.various.calcs.MostPerfectWeeks
 import dev.mfazio.espnffb.various.calcs.TopScoringPlayerWeeks
 
 object VariousFactHandler {
@@ -18,5 +21,8 @@ object VariousFactHandler {
     ): List<VariousFactCard> = listOf(
         TopScoringPlayerWeeks,
         LuckyWinnersUnluckyLosers,
+        MostPerfectWeeks,
+        HighestProjectedWeeks,
+        LargestProjectionGaps
     ).flatMap { it.generate(scoreboards, matchups, teamsMap, allTeams, members) }
 }

@@ -31,7 +31,8 @@ object TopScoringPlayerWeeks : VariousFactGenerator {
                 VariousFactEntry(
                     number = index + 1,
                     title = playerWeek.toShortString(),
-                    subtitle = playerWeek.toSubTitleString()
+                    subtitle = playerWeek.toSubTitleString(),
+                    isCurrent = playerWeek.year == ESPNConfig.currentYear,
                 )
             }
         )
@@ -43,7 +44,8 @@ object TopScoringPlayerWeeks : VariousFactGenerator {
                 VariousFactEntry(
                     number = index + 1,
                     title = playerWeek.toShortString(),
-                    subtitle = playerWeek.toSubTitleString()
+                    subtitle = playerWeek.toSubTitleString(),
+                    isCurrent = playerWeek.year == ESPNConfig.currentYear,
                 )
             }
         )

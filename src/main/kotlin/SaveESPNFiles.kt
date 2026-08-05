@@ -15,8 +15,8 @@ suspend fun main() {
     ESPNLocalFileHandler.saveRawWeeklyDataToFiles(
         startYear = 2025,
         endYear = 2025,
-        startWeek = 1,
-        endWeek = 1,
+        startWeek = 17,
+        endWeek = 17,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
@@ -70,6 +70,9 @@ suspend fun main() {
     val ownerSummaries =
         ownerSeasons.map { (owner, seasons) -> seasons.toTeamMemberSummaries(owner.id, owner.fullName) }
     ESPNLocalFileHandler.saveOwnerSummaries(ownerSummaries)
+
+    val yearlyMatchupResults = ESPNTeamRecordsCalculator.getYearlyMatchupResults(matchups)
+    ESPNLocalFileHandler.saveYearlyMatchupResults(yearlyMatchupResults)
 
     val variousFactCards = VariousFactHandler.generateList(scoreboards, matchups, teamsMap, teams, members)
     ESPNLocalFileHandler.saveVariousFactCards(variousFactCards)

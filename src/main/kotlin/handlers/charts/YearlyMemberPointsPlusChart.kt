@@ -20,9 +20,9 @@ fun generateYearlyMemberPointsPlusChartData(
     members: List<Member>
 ): List<ChartData> {
     val pointsScoredPlus =
-        ESPNRecordBookCalculator.getPointsPlus(matchups, includePlayoffs = true, skipCurrentYear = true)
+        ESPNRecordBookCalculator.getPointsPlus(matchups, includePlayoffs = true, skipCurrentYear = false)
     val pointsAllowedPlus =
-        ESPNRecordBookCalculator.getPointsAllowedPlus(matchups, includePlayoffs = true, skipCurrentYear = true)
+        ESPNRecordBookCalculator.getPointsAllowedPlus(matchups, includePlayoffs = true, skipCurrentYear = false)
 
     val yearlyPointsScoredPlus = pointsScoredPlus.groupBy { it.season }
     val yearlyPointsAllowedPlus = pointsAllowedPlus.groupBy { it.season }
