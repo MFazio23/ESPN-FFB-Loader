@@ -10,14 +10,14 @@ object ScheduleValidator {
         vararg validationTypes: ValidationType
     ): Boolean {
         val validations = listOf(
-            if (validationTypes.contains(ValidationType.WeekOneRivalry)) validateWeekOneRivalry(
+            !validationTypes.contains(ValidationType.WeekOneRivalry) || validateWeekOneRivalry(
                 teams,
                 schedule
-            ) else true,
-            if (validationTypes.contains(ValidationType.HomeAway)) validateHomeAway(teams, schedule) else true,
-            if (validationTypes.contains(ValidationType.OnePerWeek)) validateOnePerWeek(teams, schedule) else true,
-            if (validationTypes.contains(ValidationType.TwoInGroup)) validateTwoInGroup(teams, schedule) else true,
-            if (validationTypes.contains(ValidationType.OneOutOfGroup)) validateOneOutOfGroup(teams, schedule) else true
+            ),
+            !validationTypes.contains(ValidationType.HomeAway) || validateHomeAway(teams, schedule),
+            !validationTypes.contains(ValidationType.OnePerWeek) || validateOnePerWeek(teams, schedule),
+            !validationTypes.contains(ValidationType.TwoInGroup) || validateTwoInGroup(teams, schedule),
+            !validationTypes.contains(ValidationType.OneOutOfGroup) || validateOneOutOfGroup(teams, schedule)
         )
         return validations.all { it }
     }

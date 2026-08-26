@@ -14,18 +14,18 @@ import kotlin.system.measureTimeMillis
 
 object ESPNScheduleHandler {
     val teamGroups = listOf(
-        listOf(9, 14, 13, 1),   // Witz, Ben Green, Tim, Fazio
-        listOf(15, 11, 17, 4),  // Nick, Rolando, Blayne, Ben Pelc
-        listOf(12, 5, 3, 10)    // Tucker, Scott, James, Ben E.
+        listOf(1, 17, 9, 15),   // Fazio, Blayne, Witz, Nick
+        listOf(4, 3, 14, 5),    // Pelc, James, Collin, Scott
+        listOf(13, 12, 10, 11), // Tim, Tucker, Ben E., Rolando
     )
 
     val rivalryGames = listOf(
-        1 to 11,    // Fazio vs. Rolando
-        12 to 3,    // Tucker vs. James
-        14 to 4,    // Ben Green vs. Ben Pelc
-        5 to 9,     // Scott vs. Witz
         13 to 10,   // Tim vs. Ben
-        17 to 15,   // Blayne vs. Nick
+        5 to 9,     // Scott vs. Witz
+        12 to 3,    // Tucker vs. James
+        1 to 15,    // Fazio vs. Nick
+        4 to 17,   // Ben P. vs. Blayne
+        14 to 11,    // Collin. vs. Rolando
     )
 
     fun generateTeamsAndMembers(year: Int): Pair<List<Team>, List<Member>>? {
@@ -235,7 +235,7 @@ object ESPNScheduleHandler {
         teams,
         schedule,
         ValidationType.WeekOneRivalry,
-        //ValidationType.HomeAway,
+        //ValidationType.HomeAway, // This makes the generation *way* harder.
         ValidationType.OnePerWeek,
         ValidationType.TwoInGroup,
         ValidationType.OneOutOfGroup
@@ -243,5 +243,5 @@ object ESPNScheduleHandler {
 }
 
 fun main() {
-    ESPNScheduleHandler.generateSchedule(2024)
+    ESPNScheduleHandler.generateSchedule(2025)
 }

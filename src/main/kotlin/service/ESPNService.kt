@@ -1,7 +1,9 @@
 package dev.mfazio.espnffb.service
 
 import dev.mfazio.espnffb.ESPNConfig
+import dev.mfazio.espnffb.types.espn.ESPNRosterData
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
+import dev.mfazio.espnffb.types.espn.ESPNSeasonSchedule
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -43,7 +45,13 @@ interface ESPNService {
     suspend fun getESPNRoster(
         @Path("seasonId") year: Int,
         @Query("view") views: List<String> = listOf("mRoster", "mTeam")
-    ): ESPNScoreboard
+    ): ESPNRosterData
+
+    @GET("${ESPNConfig.baseURL}seasons/{seasonId}/segments/0/leagues/${ESPNConfig.leagueID}")
+    suspend fun getESPNSchedule(
+        @Path("seasonId") year: Int,
+        @Query("view") views: List<String> = listOf("mMatchupScore", "mTeam")
+    ): ESPNSeasonSchedule
 
     companion object {
         private val defaultViews = listOf("mMatchupScore", "mScoreboard", "mTeam")

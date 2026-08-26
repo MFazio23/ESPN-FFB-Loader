@@ -4,6 +4,7 @@ import dev.mfazio.espnffb.types.KeeperEntry
 import dev.mfazio.espnffb.types.KickerStats
 import dev.mfazio.espnffb.types.Position
 import dev.mfazio.espnffb.types.espn.ESPNPlayerPoolEntry
+import dev.mfazio.espnffb.types.espn.ESPNRosterData
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 
 fun ESPNPlayerPoolEntry.getStatTotal(newKickerStats: Boolean) = if (!newKickerStats) this.appliedStatTotal else {
@@ -13,7 +14,7 @@ fun ESPNPlayerPoolEntry.getStatTotal(newKickerStats: Boolean) = if (!newKickerSt
     } else this.appliedStatTotal
 }
 
-fun ESPNScoreboard.getKeeperPrices() = this.teams.flatMap { team ->
+fun ESPNRosterData.getKeeperPrices() = this.teams.flatMap { team ->
     team.roster?.entries?.map { entry ->
         entry.playerPoolEntry.let { playerPoolEntry ->
             KeeperEntry(

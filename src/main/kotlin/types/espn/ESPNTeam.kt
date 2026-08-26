@@ -32,7 +32,9 @@ data class ESPNTeam(
     val valuesByStat: Any? = null,
     val waiverRank: Int
 ) {
-    val ownerId = owners.first().let { id ->
+    val ownerId = owners.first().let { rawId ->
+        // Take out the surrounding brackets
+        val id = rawId.removePrefix("{").removeSuffix("}")
         mappedMemberIds.getOrDefault(id, id)
     }
 }

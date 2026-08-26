@@ -4,10 +4,10 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class ESPNPlayer(
-    val active: Boolean,
-    val defaultPositionId: Int,
+    val active: Boolean = false,
+    val defaultPositionId: Int? = null,
     val eligibleDateByPosition: Any?,
-    val eligibleSlots: List<Int>,
+    val eligibleSlots: List<Int> = emptyList(),
     val firstName: String,
     val fullName: String,
     val id: Int,

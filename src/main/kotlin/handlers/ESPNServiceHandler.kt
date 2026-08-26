@@ -2,7 +2,9 @@ package dev.mfazio.espnffb.handlers
 
 import dev.mfazio.espnffb.ESPNConfig
 import dev.mfazio.espnffb.service.ESPNService
+import dev.mfazio.espnffb.types.espn.ESPNRosterData
 import dev.mfazio.espnffb.types.espn.ESPNScoreboard
+import dev.mfazio.espnffb.types.espn.ESPNSeasonSchedule
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -34,6 +36,9 @@ object ESPNServiceHandler {
     suspend fun getModernData(year: Int, week: Int): ESPNScoreboard =
         espnService.getModernESPNWeek(year, week)
 
-    suspend fun getRosterData(year: Int): ESPNScoreboard =
+    suspend fun getRosterData(year: Int): ESPNRosterData =
         espnService.getESPNRoster(year)
+
+    suspend fun getScheduleData(year: Int): ESPNSeasonSchedule =
+        espnService.getESPNSchedule(year)
 }

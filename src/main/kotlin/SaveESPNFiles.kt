@@ -13,10 +13,10 @@ import dev.mfazio.espnffb.various.VariousFactHandler
 suspend fun main() {
 
     ESPNLocalFileHandler.saveRawWeeklyDataToFiles(
-        startYear = 2025,
-        endYear = 2025,
-        startWeek = 17,
-        endWeek = 17,
+        startYear = 2026,
+        endYear = 2026,
+        startWeek = 1,
+        endWeek = 1,
     )
 
     val scoreboards = ESPNLocalFileHandler.loadAllLocalScoreboardFiles()
