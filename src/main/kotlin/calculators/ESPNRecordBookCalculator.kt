@@ -10,10 +10,15 @@ object ESPNRecordBookCalculator {
 
     private const val ITEMS_TO_INCLUDE = 10
 
-    fun getRecordBookFromMatchups(matchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false): RecordBook =
+    fun getRecordBookFromMatchups(
+        matchups: List<Matchup>,
+        skipCurrentYear: Boolean = true,
+        excludeDeadSlotTeams: Boolean = false,
+        itemCount: Int = ITEMS_TO_INCLUDE
+    ): RecordBook =
         RecordBook(
-            mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true),
-            mostPointsGameInPlayoffs = getMostPointsInGame(matchups, onlyPlayoffs = true),
+            mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true, itemCount = itemCount),
+            mostPointsGameInPlayoffs = getMostPointsInGame(matchups, onlyPlayoffs = true, itemCount = itemCount),
             mostPointsSeason = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear),
             mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true),
             mostPointsPerWeek = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear),
@@ -53,17 +58,36 @@ object ESPNRecordBookCalculator {
             lowestPointsAllowedPlusWithPlayoffs = getFewestPointsAllowedPlus(matchups, includePlayoffs = true, skipCurrentYear = skipCurrentYear),
         )
 
-    fun getModernRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false): RecordBook =
-        getRecordBookFromMatchups(allMatchups.afterIncrease(), skipCurrentYear = skipCurrentYear, excludeDeadSlotTeams = excludeDeadSlotTeams)
+    fun getModernRecordBook(
+        allMatchups: List<Matchup>,
+        skipCurrentYear: Boolean = true,
+        excludeDeadSlotTeams: Boolean = false,
+        itemCount: Int = ITEMS_TO_INCLUDE
+    ): RecordBook =
+        getRecordBookFromMatchups(
+            allMatchups.afterIncrease(),
+            skipCurrentYear = skipCurrentYear,
+            excludeDeadSlotTeams = excludeDeadSlotTeams,
+            itemCount = itemCount
+        )
 
-    fun getCurrentYearRecordBook(allMatchups: List<Matchup>, excludeDeadSlotTeams: Boolean = false): RecordBook =
-        getRecordBookFromMatchups(allMatchups.filter { it.year == ESPNConfig.currentYear }, skipCurrentYear = false, excludeDeadSlotTeams = excludeDeadSlotTeams)
+    fun getCurrentYearRecordBook(
+        allMatchups: List<Matchup>,
+        excludeDeadSlotTeams: Boolean = false,
+        itemCount: Int = ITEMS_TO_INCLUDE
+    ): RecordBook =
+        getRecordBookFromMatchups(
+            allMatchups.filter { it.year == ESPNConfig.currentYear },
+            skipCurrentYear = false,
+            excludeDeadSlotTeams = excludeDeadSlotTeams,
+            itemCount = itemCount
+        )
 
-    fun getBestBallRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false): RecordBook =
+    fun getBestBallRecordBook(allMatchups: List<Matchup>, skipCurrentYear: Boolean = true, excludeDeadSlotTeams: Boolean = false, itemCount: Int = ITEMS_TO_INCLUDE): RecordBook =
         allMatchups.afterIncrease().let { matchups ->
             RecordBook(
-                mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                mostPointsGameInPlayoffs = getMostPointsInGame(matchups, onlyPlayoffs = true, scoreFunction = bestBallScoreFunc),
+                mostPointsGame = getMostPointsInGame(matchups, includePlayoffs = true, itemCount = itemCount, scoreFunction = bestBallScoreFunc),
+                mostPointsGameInPlayoffs = getMostPointsInGame(matchups, onlyPlayoffs = true, itemCount = itemCount, scoreFunction = bestBallScoreFunc),
                 mostPointsSeason = getMostPointsInSeason(matchups, scoreFunction = bestBallScoreFunc),
                 mostPointsSeasonWithPlayoffs = getMostPointsInSeason(matchups, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 mostPointsPerWeek = getMostPointsPerWeek(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
@@ -100,7 +124,7 @@ object ESPNRecordBookCalculator {
                 highestPointsAllowedPlusWithPlayoffs = getMostPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
                 lowestPointsAllowedPlus = getFewestPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallScoreFunc),
                 lowestPointsAllowedPlusWithPlayoffs = getFewestPointsAllowedPlus(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallScoreFunc),
-                mostPointsMissed = getMostPointsInGame(matchups, includePlayoffs = true, scoreFunction = bestBallGapFunc),
+                mostPointsMissed = getMostPointsInGame(matchups, includePlayoffs = true, itemCount = itemCount, scoreFunction = bestBallGapFunc),
                 mostPointsMissedInSeason = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, scoreFunction = bestBallGapFunc),
                 mostPointsMissedInSeasonWithPlayoffs = getMostPointsInSeason(matchups, skipCurrentYear = skipCurrentYear, includePlayoffs = true, scoreFunction = bestBallGapFunc),
                 highestPointsPlayedPctInSeason = getHighestPointsPlayedPctInSeason(matchups, skipCurrentYear = skipCurrentYear,),
@@ -119,6 +143,7 @@ object ESPNRecordBookCalculator {
         matchups: List<Matchup>,
         includePlayoffs: Boolean = false,
         onlyPlayoffs: Boolean = false,
+        itemCount: Int = ITEMS_TO_INCLUDE,
         scoreFunction: (TeamScores) -> Double = standardScoreFunc
     ) = getProperMatchups(matchups, includePlayoffs = includePlayoffs, onlyPlayoffs = onlyPlayoffs)
         .flatMap { matchup ->
@@ -138,7 +163,7 @@ object ESPNRecordBookCalculator {
             )
         }
         .sortedByDescending { entry -> entry.value }
-        .take(ITEMS_TO_INCLUDE)
+        .take(itemCount)
 
     private fun getFewestPointsInGame(
         matchups: List<Matchup>,
