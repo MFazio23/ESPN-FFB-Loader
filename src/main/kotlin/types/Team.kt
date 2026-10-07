@@ -54,3 +54,6 @@ data class Team(
 }
 
 typealias TeamYearMap = Map<Int, List<Team>>
+
+fun TeamYearMap.getMemberTeamForYear(year: Int, member: Member): Team? =
+    this[year]?.firstOrNull { it.owners.contains(member.id) }

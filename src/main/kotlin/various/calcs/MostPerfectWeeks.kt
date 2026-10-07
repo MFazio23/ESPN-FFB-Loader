@@ -24,24 +24,25 @@ object MostPerfectWeeks : VariousFactGenerator {
         val memberPerfectWeeks = members.associateWith { member ->
             modernMatchups
                 .filter { it.includesMember(member, modernTeamsMap) }
-                .count { matchup ->
+                .filter { matchup ->
                     val team = modernTeamsMap[matchup.year]?.firstOrNull { it.owners.contains(member.id) }
-                        ?: return@count false
-                    val teamScores = matchup.getTeamScores(team.id) ?: return@count false
+                        ?: return@filter false
+                    val teamScores = matchup.getTeamScores(team.id) ?: return@filter false
 
                     teamScores.isIdealWeek()
                 }
-        }.filterValues { it > 0 }.toList().sortedByDescending { (_, perfectWeeks) -> perfectWeeks }
+        }.filterValues { it.isNotEmpty() }.toList().sortedByDescending { (_, perfectWeeks) -> perfectWeeks.size }
 
         return listOf(
             VariousFactCard(
             title = mostPerfectWeeksTitle,
             subtitle = mostPerfectWeeksSubtitle,
             entries = memberPerfectWeeks.mapIndexed { index, (member, perfectWeeks) ->
+                val perfectWeeksThisYear = perfectWeeks.filter { it.year == ESPNConfig.currentYear }
                 VariousFactEntry(
                     number = index + 1,
                     title = member.fullName,
-                    subtitle = "$perfectWeeks perfect week${if (perfectWeeks != 1) "s" else ""}"
+                    subtitle = "${perfectWeeks.size} perfect week${if (perfectWeeks.size != 1) "s" else ""} (${perfectWeeksThisYear.size} in ${ESPNConfig.currentYear})"
                 )
             }
         ))

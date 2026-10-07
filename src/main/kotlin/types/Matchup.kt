@@ -24,6 +24,8 @@ data class Matchup(
         (teamIds.contains(homeTeamId) && (homeScores.standardScore > awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && isHomeOriginalWinner)) ||
             (teamIds.contains(awayTeamId) && (homeScores.standardScore < awayScores.standardScore || homeScores.standardScore == awayScores.standardScore && !isHomeOriginalWinner))
 
+    fun getMemberScores(member: Member, teamsMap: TeamYearMap) = teamsMap[year]
+
     fun getTeamScores(teamId: Int) = when(teamId) {
         homeTeamId -> homeScores
         awayTeamId -> awayScores

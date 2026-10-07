@@ -5,7 +5,6 @@ import dev.mfazio.espnffb.types.KickerStats
 import dev.mfazio.espnffb.types.Position
 import dev.mfazio.espnffb.types.espn.ESPNPlayerPoolEntry
 import dev.mfazio.espnffb.types.espn.ESPNRosterData
-import dev.mfazio.espnffb.types.espn.ESPNScoreboard
 
 fun ESPNPlayerPoolEntry.getStatTotal(newKickerStats: Boolean) = if (!newKickerStats) this.appliedStatTotal else {
     val playerStats = this.player.stats.firstOrNull()
